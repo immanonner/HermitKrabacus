@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content={{description}}>
+    <title>{{title}}</title>
+    <link rel="shortcut icon" href="/favicon.ico">
+    {% set style_name, jsB_name = style_bundle_name, js_bundle_name -%}
+    {%- assets style_name -%}
+    <link rel="stylesheet" type="text/css" href="{{ASSET_URL}}"/>
+    {%- endassets %}
+  </head>
+  <body>
+    {% include 'navigation.html' -%}
+    {% block content -%}{% endblock %}
+    {%- assets jsB_name %}    <script src="{{ASSET_URL}}"></script>
+    {%- endassets %}
+  </body>
+</html>

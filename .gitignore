@@ -1,0 +1,7 @@
+*.env
+__pycache__/
+*.webassets-cache
+config.py
+hkvenv/
+.vscode/tasks.json
+.vscode/launch.json

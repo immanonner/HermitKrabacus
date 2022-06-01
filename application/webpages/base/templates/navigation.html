@@ -1,0 +1,19 @@
+<header>
+    <nav role="navigation">
+        <div id="menuToggle">
+            <input title="icon" label="Toggle" type="checkbox"/>
+            <span class="icon-line"></span>
+            <span class="icon-line"></span>
+            <span class="icon-line"></span>
+            <div id="menu">
+                {%- for href, caption in [
+                                    (url_for('home_bp.home'), '01 : Home'),
+                                    (url_for('test_bp.test'), '02 : Test'),
+                                    ] %}
+                <a href="{{ href }}" title="{{caption[5:]}}">{{ caption }}</a>
+
+                {%- endfor %}
+            </div>
+        </div>
+    </nav>
+</header>

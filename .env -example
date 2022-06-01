@@ -1,0 +1,4 @@
+FLASK_ENV = #development or production
+DEBUG = #True or False
+SECRET_KEY = #secret
+LESS_BIN = #<absolute path to lessc:  C:/Users/<user>/AppData/Roaming/npm/lessc> 
