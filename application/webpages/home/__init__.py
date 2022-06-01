@@ -17,5 +17,5 @@ def home():
         'home.html',
         style_bundle_name="home_bp_styles",
         js_bundle_name="home_bp_js",
-        title="Jinja Demo Site",
-        description="Smarter page templates with Flask & Jinja.")
+        title="Hermit Krabacus",
+        description="Station Krabbing Ascended")

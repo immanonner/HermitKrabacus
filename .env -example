@@ -4,3 +4,4 @@ SECRET_KEY = #secret
 LESS_BIN = #<absolute path to lessc:  C:/Users/<user>/AppData/Roaming/npm/lessc> 
 ESI_SECRET_KEY = ''  # your secret key
 ESI_CLIENT_ID = ''  # your client ID
+SQLALCHEMY_DATABASE_URI = 'sqlite:///eveDB.sqlite3'

@@ -1,29 +1,39 @@
 # -*- encoding: utf-8 -*-
 import datetime
-from os.path import join, dirname
+from os import environ, path
 from dotenv import load_dotenv
 # -----------------------------------------------------
 # !DEV!Application sever configurations
 # ------------------------------------------------------
-dotenv_path = join(dirname(__file__), '.env')  # Path to .env file
+dotenv_path = path.join(path.dirname(__file__), '.env')  # Path to .env file
 load_dotenv(dotenv_path)
 
 PORT = 5015
 HOST = 'localhost'
 EXPLAIN_TEMPLATE_LOADING = False
-SCHEDULER_API_ENABLED = True
-SCHEDULER_TIMEZONE = "UTC"
 # ------------------------------------------------------
 # Assets config
 # -----------------------------------------------------
 # ensure npm package "less" is installed globally "-g"
-
 ASSETS_DEBUG = False 
 ASSETS_AUTO_BUILD = True
 # -----------------------------------------------------
+
+
 # SQL Alchemy configs
 # -----------------------------------------------------
-SQLALCHEMY_DATABASE_URI = 'sqlite:///eveDB.sqlite3'
+# Database
+SQLALCHEMY_DATABASE_URI = environ.get("SQLALCHEMY_DATABASE_URI")
+SQLALCHEMY_ECHO = False
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+# ------------------------------------------------------
+
+
+# Session settings for flask login
+# ------------------------------------------------------
+PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=30)
+
+
 # -----------------------------------------------------
 # ESI Configs
 # -----------------------------------------------------
@@ -31,7 +41,6 @@ ESI_DATASOURCE = 'tranquility'  # Change it to 'singularity' to use the test ser
 ESI_SWAGGER_JSON = 'https://esi.tech.ccp.is/latest/swagger.json?datasource=%s' % ESI_DATASOURCE
 ESI_CALLBACK = 'http://%s:%d/sso/callback' % (HOST, PORT) # the callback URI you gave CCP
 ESI_USER_AGENT = 'Hermit Krabacus'
-
 ESI_SCOPES = [
     'esi-wallet.read_character_wallet.v1',
     'esi-search.search_structures.v1',
@@ -48,14 +57,5 @@ EVE_NULL_REGIONS = [
     10000008, 10000018, 10000022, 10000041, 10000045, 10000061, 10000010, 10000003,
     10000015, 10000006
 ]
-# ------------------------------------------------------
-# Session settings for flask login
-# ------------------------------------------------------
-PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=30)
 
-# ------------------------------------------------------
-# DO NOT EDIT
-# Fix warnings from flask-sqlalchemy / others
-# ------------------------------------------------------
-SQLALCHEMY_TRACK_MODIFICATIONS = True
 
