@@ -6,3 +6,4 @@ hkvenv/
 f_cache/
 .vscode/tasks.json
 .vscode/launch.json
+.sqlite3
