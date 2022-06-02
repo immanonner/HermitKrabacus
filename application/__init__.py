@@ -2,14 +2,32 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_assets import Environment
+from esipy import EsiApp, EsiSecurity, EsiClient, cache
 from config import *
 from application.assets import compile_static_assets
+
 
 
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 assets = Environment()
+f_cache = cache.FileCache(path="./f_cache")
+# create the eve app interface
+esiapp = EsiApp(cache=f_cache).get_latest_swagger
+
+# init the security object
+esisecurity = EsiSecurity(
+    redirect_uri=ESI_CALLBACK,
+    client_id=ESI_CLIENT_ID,
+    secret_key=ESI_SECRET_KEY,
+    headers={'User-Agent': ESI_USER_AGENT})
+
+# init the client
+esiclient = EsiClient(
+    security=esisecurity,
+    cache=f_cache,
+    headers={'User-Agent': ESI_USER_AGENT})
 
 def init_app():
     """Initialize the core application."""

@@ -5,6 +5,7 @@ from flask_login import UserMixin
 # -----------------------------------------------------------------------
 # Database models
 # -----------------------------------------------------------------------
+
 class Users(db.Model, UserMixin):
     # our ID is the character ID from EVE API
     character_id = db.Column(db.BigInteger,
@@ -38,8 +39,3 @@ class Users(db.Model, UserMixin):
             time.time() + token_response['expires_in'],)
         if 'refresh_token' in token_response:
             self.refresh_token = token_response['refresh_token']
-
-
-# -----------------------------------------------------------------------
-# Flask Login requirements
-# -----------------------------------------------------------------------
