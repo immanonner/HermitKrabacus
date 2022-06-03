@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    <div class="container">
+        <h1>{{title}}</h1>
+        <p>{{description}}</p>
+        <button class="btn btn-primary" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+        <button class="btn btn-primary" onclick="window.location.href='{{ url_for('login') }}'">Switch User</button>
+    </div>
+{% endblock %}

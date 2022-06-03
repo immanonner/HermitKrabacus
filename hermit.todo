@@ -1,0 +1,24 @@
+- integrate character linking
+- build proper landing page and login button
+    - krab with matrix code running behind it
+        - flip character visualization
+        - better colors / fades from white printing, green standard, highlighted green single chars, to black ending
+        - glitched character after print, highlighted ones only? how often?
+- build proper user dashboard and logout button
+    - list of characters linked
+        - add/remove linked characters
+        - label characters import / export
+    - wallet balance
+        - graph
+    - number of transactions since last login
+    - transaction history
+        - categorize transactions automagically and [manually]
+    - render eve map region map? and showcase asset stockpiles / number of transactions per station
+- build proper market analysis app page
+    - market history [k-market hub jita;amarr;dodixie;rens]
+    - market history [null region]
+    - market active orders [station]
+    - market jita min prices [jita and station]
+    - calculate profit margins
+        - [shipping cost] & [taxes] & [broker fees]
+        - [buy price] & [sell price] - automagically and manually

@@ -1,6 +1,6 @@
 from flask import current_app as app, flash, redirect, url_for, session, request
 from .models import db, Users
-from flask_login import login_user, logout_user, current_user
+from flask_login import login_user, logout_user, current_user, login_required
 from . import login_manager, esisecurity
 from esipy.exceptions import APIException
 from sqlalchemy.orm.exc import NoResultFound
@@ -16,14 +16,26 @@ def load_user(character_id):
     """ Required user loader for Flask-Login """
     if character_id is not None:
         toon = Users.query.get(character_id)
-        if datetime.now() < toon.access_token_expires:
-            return toon
+        if toon is not None:
+            esisecurity.update_token(toon.get_sso_data())
+            if esisecurity.is_token_expired() :
+                try:
+                    # refresh token
+                    fresh_esi_tokens = esisecurity.refresh()
+                    toon.update_token(fresh_esi_tokens)
+                    db.session.commit()
+                    return toon
+                except (APIException, AttributeError):
+                    # refresh token failed, delete token
+                    db.session.delete(toon)
+                    db.session.commit()
+                    return None
+        return None           
     return None
 
 @login_manager.unauthorized_handler
 def unauthorized():
     """Redirect unauthorized users to Login page."""
-    flash('You must be logged in to view that page.')
     return redirect(url_for('login'))
 
 
@@ -37,6 +49,13 @@ def gen_state_token():
         random_string.encode('utf-8'),
         hashlib.sha256
     ).hexdigest()
+    
+@app.route('/evelogout')
+@login_required
+def logout():
+    logout_user()
+    flash('Successfully logged out!', 'success')
+    return redirect(url_for("home_bp.home"))
 
 @app.route('/evelogin')
 def login():
@@ -102,4 +121,4 @@ def callback():
         db.session.rollback()
         logout_user()
 
-    return redirect(url_for('home_bp.home'))
+    return redirect(url_for('user_bp.dashboard'))
