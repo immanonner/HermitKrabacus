@@ -1,3 +1,4 @@
+- include img folder into webassets
 - integrate character linking
 - build proper landing page and login button
     - krab with matrix code running behind it
