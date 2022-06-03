@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 dotenv_path = path.join(path.dirname(__file__), '.env')  # Path to .env file
 load_dotenv(dotenv_path)
 
+FLASK_ENV = environ.get("FLASK_ENV")
+DEBUG = environ.get("DEBUG")
 PORT = 5015
 HOST = 'localhost'
 EXPLAIN_TEMPLATE_LOADING = False
@@ -15,6 +17,7 @@ EXPLAIN_TEMPLATE_LOADING = False
 # Assets config
 # -----------------------------------------------------
 # ensure npm package "less" is installed globally "-g"
+LESS_BIN = environ.get("LESS_BIN")
 ASSETS_DEBUG = False 
 ASSETS_AUTO_BUILD = True
 # -----------------------------------------------------
@@ -31,6 +34,7 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Session settings for flask login
 # ------------------------------------------------------
+SECRET_KEY = environ.get("SECRET_KEY")
 PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=30)
 
 

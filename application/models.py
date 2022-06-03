@@ -1,5 +1,6 @@
 from . import db
-import datetime, time
+from datetime import datetime
+import time
 from flask_login import UserMixin
 
 # -----------------------------------------------------------------------
@@ -11,12 +12,13 @@ class Users(db.Model, UserMixin):
     character_id = db.Column(db.BigInteger,
         primary_key=True,
         autoincrement=False)
-    character_owner_hash = db.Column(db.String(255))
     character_name = db.Column(db.String(200))
-    # SSO Token stuff
-    access_token = db.Column(db.String(4096))
+    # EVE SSO Token stuff
     access_token_expires = db.Column(db.DateTime())
+    character_owner_hash = db.Column(db.String(255))
     refresh_token = db.Column(db.String(100))
+    access_token = db.Column(db.String(4096))
+    # Deprecated link token [manually generated] for users to link toons together
     link_token = db.Column(db.String(100))
 
     def get_id(self):
