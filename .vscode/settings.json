@@ -10,4 +10,5 @@
         "**/.webassets-cache": true,
         "f_cache": true
     },
+    "explorerExclude.backup": null,
 }

@@ -5,7 +5,6 @@ from . import login_manager, esisecurity
 from esipy.exceptions import APIException
 from sqlalchemy.orm.exc import NoResultFound
 import random, hmac, hashlib
-from datetime import datetime
 
 
 # -----------------------------------------------------------------------
@@ -21,6 +20,7 @@ def load_user(character_id):
             if esisecurity.is_token_expired() :
                 try:
                     # refresh token
+                    # todo: verify owner hash is the same - necessary?
                     fresh_esi_tokens = esisecurity.refresh()
                     toon.update_token(fresh_esi_tokens)
                     db.session.commit()
@@ -39,11 +39,11 @@ def unauthorized():
     return redirect(url_for('login'))
 
 
-def gen_state_token():
+def gen_state_token(length=40):
     """Generates a non-guessable OAuth token"""
     chars = ('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
     rand = random.SystemRandom()
-    random_string = ''.join(rand.choice(chars) for _ in range(40))
+    random_string = ''.join(rand.choice(chars) for _ in range(length))
     return hmac.new(
         app.config.get('ESI_SECRET_KEY').encode('utf-8'),
         random_string.encode('utf-8'),
@@ -58,9 +58,18 @@ def logout():
     return redirect(url_for("home_bp.home"))
 
 @app.route('/evelogin')
-def login():
+def login(link=False):
     state_token = gen_state_token()
     session['token'] = state_token
+    link = bool(request.args.get("link"))
+    if not current_user.is_anonymous and link is True:
+        if current_user.link_token is None:
+            link_token = gen_state_token(length=16)
+            current_user.link_token = link_token
+            db.session.commit()
+        else:
+            link_token = current_user.link_token    
+        session['link_token'] = link_token
     auth_uri = r'https://login.eveonline.com/v2/oauth/authorize?response_type=code&redirect_uri=%s&client_id=%s%s%s' % (
         app.config.get('ESI_CALLBACK'),
         app.config.get('ESI_CLIENT_ID'),
@@ -97,17 +106,18 @@ def callback():
     # now we check in database, if the user exists
     # actually we'd have to also check with character_owner_hash, to be
     # sure the owner is still the same, but that's an example only...
+    # todo: verify owner hash is the same even necessary?
     try:
         user = Users.query.filter(
             Users.character_id == cdata['sub'].split(':')[2],
-        ).one()
-
+            ).one()
+    
     except NoResultFound:
         user = Users()
         user.character_id = cdata['sub'].split(':')[2]
-
+        user.character_name = cdata['name']
     user.character_owner_hash = cdata['owner']
-    user.character_name = cdata['name']
+    user.link_token = session.pop('link_token', None)
     user.update_token(auth_response)
 
     # now the user is ready, so update/create it and log the user
@@ -117,7 +127,6 @@ def callback():
         login_user(user)
         session.permanent = True
     except:
-        # logger.exception("Cannot login the user - uid: %d" % user.character_id)
         db.session.rollback()
         logout_user()
 

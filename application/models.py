@@ -18,8 +18,8 @@ class Users(db.Model, UserMixin):
     character_owner_hash = db.Column(db.String(255))
     refresh_token = db.Column(db.String(100))
     access_token = db.Column(db.String(4096))
-    # Deprecated link token [manually generated] for users to link toons together
-    link_token = db.Column(db.String(100))
+    # Token that associates this user with other toons
+    link_token = db.Column(db.String(100), nullable=True)
 
     def get_id(self):
         """ Required for flask-login """
@@ -41,3 +41,4 @@ class Users(db.Model, UserMixin):
             time.time() + token_response['expires_in'],)
         if 'refresh_token' in token_response:
             self.refresh_token = token_response['refresh_token']
+    

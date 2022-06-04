@@ -1,13 +1,13 @@
-- include img folder into webassets
+- include img folder into webassets ie favicon.ico, apple-touch-icon.png, etc
 - integrate character linking
-- build proper landing page and login button
+- build proper landing page and [login button - done]
     - krab with matrix code running behind it
         - flip character visualization
         - better colors / fades from white printing, green standard, highlighted green single chars, to black ending
         - glitched character after print, highlighted ones only? how often?
-- build proper user dashboard and logout button
+- build proper user dashboard and [logout button - done]
     - list of characters linked
-        - add/remove linked characters
+        - add/remove linked characters [ feature viable; not utilized yet ]
         - label characters import / export
     - wallet balance
         - graph
