@@ -5,6 +5,7 @@
         <h1>{{title}}</h1>
         <p>{{description}}</p>
         <button class="btn btn-primary" onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
-        <button class="btn btn-primary" onclick="window.location.href='{{ url_for('login', link=True) }}'">Switch User</button>
+        <button class="btn btn-primary" onclick="window.location.href='{{ url_for('login', link=True) }}'">Add Character</button>
+        <button class="btn btn-primary" onclick="window.location.href='{{ url_for('login', switch=True) }}'">Switch Character</button>
     </div>
 {% endblock %}

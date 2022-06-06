@@ -6,7 +6,7 @@
     <meta name="description" content={{description}}>
     <title>{{title}}</title>
     <link rel="shortcut icon" href="/favicon.ico">
-    {% set style_name, jsB_name = style_bundle_name, js_bundle_name -%}
+    {% set style_name, jsB_name = request.blueprint + "_styles", request.blueprint + "_js" -%}
     {%- assets style_name -%}
     <link rel="stylesheet" type="text/css" href="{{ASSET_URL}}"/>
     {%- endassets %}

@@ -24,6 +24,10 @@ class Users(db.Model, UserMixin):
     def get_id(self):
         """ Required for flask-login """
         return self.character_id
+    
+    def linked_characters(self):
+        """ helper function to get all linked characters """
+        return self.query.filter_by(link_token=self.link_token).all()
 
     def get_sso_data(self):
         """ Little "helper" function to get formated data for esipy security

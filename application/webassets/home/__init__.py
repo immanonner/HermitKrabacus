@@ -15,7 +15,5 @@ def home():
     """home page."""
     return render_template(
         'home.html',
-        style_bundle_name="home_bp_styles",
-        js_bundle_name="home_bp_js",
         title="Hermit Krabacus",
         description="Station Krabbing Ascended")

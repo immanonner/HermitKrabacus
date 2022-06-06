@@ -1,4 +1,5 @@
 from flask import current_app as app, flash, redirect, url_for, session, request
+from sqlalchemy import null
 from .models import db, Users
 from flask_login import login_user, logout_user, current_user, login_required
 from . import login_manager, esisecurity
@@ -52,24 +53,30 @@ def gen_state_token(length=40):
     
 @app.route('/evelogout')
 @login_required
-def logout():
+def logout(switch=False):
     logout_user()
     flash('Successfully logged out!', 'success')
+    switch = bool(request.args.get("switch"))
+    if switch:
+        return redirect(url_for('login', switch=False))
     return redirect(url_for("home_bp.home"))
 
 @app.route('/evelogin')
-def login(link=False):
-    state_token = gen_state_token()
-    session['token'] = state_token
+def login(link=False, switch=False):
     link = bool(request.args.get("link"))
+    switch = bool(request.args.get("switch"))
+    if switch and current_user.is_authenticated:
+        return redirect(url_for("logout", switch=True))
     if not current_user.is_anonymous and link is True:
-        if current_user.link_token is None:
+        if current_user.link_token is None or current_user.link_token is null:
             link_token = gen_state_token(length=16)
             current_user.link_token = link_token
             db.session.commit()
         else:
             link_token = current_user.link_token    
         session['link_token'] = link_token
+    state_token = gen_state_token()
+    session['token'] = state_token
     auth_uri = r'https://login.eveonline.com/v2/oauth/authorize?response_type=code&redirect_uri=%s&client_id=%s%s%s' % (
         app.config.get('ESI_CALLBACK'),
         app.config.get('ESI_CLIENT_ID'),
@@ -117,7 +124,8 @@ def callback():
         user.character_id = cdata['sub'].split(':')[2]
         user.character_name = cdata['name']
     user.character_owner_hash = cdata['owner']
-    user.link_token = session.pop('link_token', None)
+    if session.get('link_token', None) != None:
+        user.link_token = session.pop('link_token')
     user.update_token(auth_response)
 
     # now the user is ready, so update/create it and log the user
