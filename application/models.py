@@ -2,6 +2,7 @@ from . import db
 from datetime import datetime
 import time
 from flask_login import UserMixin
+from sqlalchemy import null
 
 # -----------------------------------------------------------------------
 # Database models
@@ -27,11 +28,13 @@ class Users(db.Model, UserMixin):
     
     def linked_characters(self):
         """ helper function to get all linked characters """
-        return self.query.filter_by(link_token=self.link_token).all()
+        if self.link_token is null or self.link_token is None:
+            return self
+        else:
+            return self.query.filter_by(link_token=self.link_token).all()
 
     def get_sso_data(self):
-        """ Little "helper" function to get formated data for esipy security
-        """
+        """ Little "helper" function to get formated data for esipy security"""
         return {
             'access_token': self.access_token,
             'refresh_token': self.refresh_token,
@@ -45,4 +48,10 @@ class Users(db.Model, UserMixin):
             time.time() + token_response['expires_in'],)
         if 'refresh_token' in token_response:
             self.refresh_token = token_response['refresh_token']
+            
+    def clear_esi_tokens(self):
+        """ helper function to clear token data """
+        self.access_token = None
+        self.access_token_expires = None
+        self.refresh_token = None
     
