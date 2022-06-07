@@ -4,7 +4,7 @@ from application.models import db, Users
 from application import esiapp, esiclient, esisecurity
 from esipy.exceptions import APIException
 from sqlalchemy import null
-
+import json
 
 bp = Blueprint(
     'user_bp', __name__,
@@ -72,8 +72,7 @@ def dashboard():
     """user dashboard."""
     return render_template(
         'dashboard.html',
-        characters = get_user_eve_info(),
         title=f"Hermit Krabacus Dashboard - {current_user.character_name}",
-        description="Overview of User's account and your current settings."
-        )
+        description="Overview of User's account and your current settings.",
+        user_info=get_user_eve_info())
 

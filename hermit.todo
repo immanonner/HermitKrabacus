@@ -1,5 +1,5 @@
-- include img folder into webassets ie favicon.ico, apple-touch-icon.png, etc
-- integrate character linking
+- include img folder into webassets ie favicon.ico, apple-touch-icon.png, etc [done but change to crab claw eventually]
+- build toaster oven load spinner
 - build proper landing page and [login button - done]
     - krab with matrix code running behind it
         - flip character visualization
