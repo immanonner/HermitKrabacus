@@ -20,7 +20,7 @@ class Users(db.Model, UserMixin):
     access_token = db.Column(db.String(4096))
     # Token that associates this user with other toons
     link_token = db.Column(db.String(100), nullable=True)
-
+    # overshadow the USERMIXIN get_id method with our own
     def get_id(self):
         """ Required for flask-login """
         return self.character_id

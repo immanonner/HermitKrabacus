@@ -1,9 +1,8 @@
 from flask import current_app as app, render_template, Blueprint
 from flask_login import current_user, login_required
-from numpy import character
 from application import esiapp, esiclient
 from sqlalchemy import null
-
+import json
 
 bp = Blueprint(
     'user_bp', __name__,
@@ -27,6 +26,10 @@ def get_user_eve_info():
         )
     op = esiapp.op['get_characters_character_id_wallet_transactions'](character_id=current_user.character_id,
                                                                     token=current_user.access_token)
+    orders_response = esiclient.request(op, raw_body_only=True)
+    if orders_response.status == 200:
+        orders = orders_response.raw
+    json_response = json.loads(orders)
     pass
 
 
@@ -37,8 +40,7 @@ def dashboard():
     """user dashboard."""
     return render_template(
         'dashboard.html',
-        characters = get_user_eve_info(),
         title=f"Hermit Krabacus Dashboard - {current_user.character_name}",
-        description="Overview of User's account and your current settings."
-        )
+        description="Overview of User's account and your current settings.",
+        user_info=get_user_eve_info())
 
