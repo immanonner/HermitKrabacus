@@ -22,6 +22,11 @@ class Users(db.Model, UserMixin):
     # Token that associates this user with other toons
     link_token = db.Column(db.String(100), nullable=True)
     # overshadow the USERMIXIN get_id method with our own
+    created_date = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return '<User %r>' % self.character_name
+
     def get_id(self):
         """ Required for flask-login """
         return self.character_id

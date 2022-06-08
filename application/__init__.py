@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_assets import Environment
 from esipy import EsiApp, EsiSecurity, EsiClient, cache
@@ -10,6 +11,7 @@ from application.assets import compile_static_assets
 
 
 db = SQLAlchemy()
+migrate = Migrate()
 login_manager = LoginManager()
 assets = Environment()
 f_cache = cache.FileCache(path="./f_cache")
@@ -33,11 +35,12 @@ def init_app():
     """Initialize the core application."""
     app = Flask(__name__,
                 instance_relative_config=False,
-                static_folder='webpages')
+                static_folder='webassets')
     app.config.from_object('config')
 
     # Initialize Plugins
     db.init_app(app)
+    migrate.init_app(app, db)
     login_manager.init_app(app)
     assets.init_app(app)
     

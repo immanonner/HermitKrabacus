@@ -28,7 +28,7 @@ def load_user(character_id):
                     return toon
                 except (APIException, AttributeError):
                     # refresh token failed, delete token
-                    db.session.delete(toon)
+                    toon.clear_esi_tokens()
                     db.session.commit()
                     return None
         return None           
