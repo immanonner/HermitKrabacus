@@ -53,4 +53,8 @@ def init_app():
         if app.config['FLASK_ENV'] == 'development':
             compile_static_assets(assets, default_bp_name="base_bp")
         db.create_all()
+        from flask_migrate import upgrade as db_upgrade
+        db_upgrade()
+        
+        
         return app
