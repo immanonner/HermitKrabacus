@@ -31,10 +31,10 @@ class Users(db.Model, UserMixin):
         """ Required for flask-login """
         return self.character_id
     
-    def linked_characters(self):
+    def linked_characters(self)-> list:
         """ helper function to get all linked characters """
         if self.link_token is null or self.link_token is None:
-            return self
+            return [self]
         else:
             return self.query.filter_by(link_token=self.link_token).all()
 

@@ -1,7 +1,7 @@
 from flask import current_app as app, flash, render_template, Blueprint
 from flask_login import current_user, login_required
 from application.models import db, Users
-from application import esiapp, esiclient, esisecurity
+from application import esiapp, esiclient
 from esipy.exceptions import APIException
 from sqlalchemy import null
 import json
@@ -15,14 +15,14 @@ bp = Blueprint(
 
 # get each linked eve online user information such as wallet, characters, etc.
 def get_user_eve_info():
-    request_bundle = []
     users_eve_info = {}
+    response_bundle = []
     for linked_toon in current_user.linked_characters():
-        esisecurity.update_token(linked_toon.get_sso_data())
-        if esisecurity.is_token_expired():
+        esiclient.security.update_token(linked_toon.get_sso_data())
+        if esiclient.security.is_token_expired():
             
             try:
-                linked_toon.update_token(esisecurity.refresh())
+                linked_toon.update_token(esiclient.security.refresh())
                 db.session.commit()
             except (APIException, AttributeError):
                 # refresh token failed, delete tokens and skip character
@@ -37,13 +37,13 @@ def get_user_eve_info():
         orders_op = esiapp.op \
                     ['get_characters_character_id_orders'] \
                     (character_id = linked_toon.character_id,
-                    token = linked_toon.access_token)
+                    token = esiclient.security.access_token)
         transacts_op = esiapp.op \
                     ['get_characters_character_id_wallet_transactions'] \
                     (character_id = linked_toon.character_id,
-                    token = linked_toon.access_token)
-        request_bundle.extend([wallet_op, orders_op, transacts_op])
-    response_bundle = esiclient.multi_request(request_bundle)
+                    token = esiclient.security.access_token)
+        request_bundle = [wallet_op, orders_op, transacts_op]
+        response_bundle.extend(esiclient.multi_request(request_bundle))
     """
         character_name: wallet:balance, 
                         orders: orders_data, 
@@ -60,8 +60,8 @@ def get_user_eve_info():
             continue
         users_eve_info[toon.character_name][req_title] = res.data
     # reset esi tokens to origin character's tokens
-    if esisecurity.access_token != current_user.access_token:
-        esisecurity.update_token(current_user.get_sso_data())
+    if esiclient.security.access_token != current_user.access_token:
+        esiclient.security.update_token(current_user.get_sso_data())
     return users_eve_info
 
 
@@ -74,5 +74,5 @@ def dashboard():
         'dashboard.html',
         title=f"Hermit Krabacus Dashboard - {current_user.character_name}",
         description="Overview of User's account and your current settings.",
-        user_info=get_user_eve_info())
+        characters=get_user_eve_info())
 

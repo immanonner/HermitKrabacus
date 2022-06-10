@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy_utils import database_exists
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_assets import Environment
@@ -16,7 +17,7 @@ login_manager = LoginManager()
 assets = Environment()
 f_cache = cache.FileCache(path="./f_cache")
 # create the eve app interface
-esiapp = EsiApp(cache=f_cache).get_latest_swagger
+esiapp = EsiApp(cache=f_cache, cache_time=0).get_latest_swagger
 
 # init the security object
 esisecurity = EsiSecurity(
@@ -52,9 +53,11 @@ def init_app():
         # bundle (js -> jsmin; less->cssmin)
         if app.config['FLASK_ENV'] == 'development':
             compile_static_assets(assets, default_bp_name="base_bp")
-        db.create_all()
-        from flask_migrate import upgrade as db_upgrade
-        db_upgrade()
+        if database_exists(db.engine.url) is False:
+            db.create_all()
+        else:# creates the db if it doesnt exist
+            from flask_migrate import upgrade as db_upgrade
+            db_upgrade()
         
         
         return app

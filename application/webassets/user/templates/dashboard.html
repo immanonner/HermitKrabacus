@@ -8,10 +8,12 @@
         <button class="btn btn-primary" onclick="window.location.href='{{ url_for('login', link=True) }}'">Add Character</button>
         <button class="btn btn-primary" onclick="window.location.href='{{ url_for('login', switch=True) }}'">Switch Character</button>
     </div>
-    {% for character in characters %}
+    {% for character, attributes in characters.items() %}
         <div class="container">
             <h1>{{character}}</h1>
-            <p>{{characters.get(character)['wallet']}}</p>
+            <p>{{attributes.get('wallet')}}</p>
+            <p>{{attributes.get('orders')}}</p>
+            <p>{{attributes.get('wallet_transactions')}}</p>
         </div>
     {% endfor %}
 {% endblock %}
