@@ -2,9 +2,9 @@ from flask import current_app as app, flash, redirect, url_for, session, request
 from sqlalchemy import null
 from .models import db, Users
 from flask_login import login_user, logout_user, current_user, login_required
-from . import login_manager, esiclient
+from . import login_manager, esiclient, esisecurity
 from esipy.exceptions import APIException
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import NoResultFound
 import random, hmac, hashlib
 
 
@@ -17,12 +17,12 @@ def load_user(character_id):
     if character_id is not None:
         toon = Users.query.get(character_id)
         if toon is not None:
-            esiclient.security.update_token(toon.get_sso_data())
-            if esiclient.security.is_token_expired() :
+            esisecurity.update_token(toon.get_sso_data())
+            if esisecurity.is_token_expired() :
                 try:
                     # refresh token
                     # todo: verify owner hash is the same - necessary?
-                    fresh_esi_tokens = esiclient.security.refresh()
+                    fresh_esi_tokens = esisecurity.refresh()
                     toon.update_token(fresh_esi_tokens)
                     db.session.commit()
                     return toon
@@ -104,7 +104,7 @@ def callback():
         return 'Login EVE Online SSO failed: %s' % e, 403
 
     # we get the character informations
-    cdata = esiclient.security.verify()
+    cdata = esisecurity.verify()
 
     # if the user is already authed, we log him out
     if current_user.is_authenticated:
