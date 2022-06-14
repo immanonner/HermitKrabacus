@@ -7,15 +7,16 @@
         - glitched character after print, highlighted ones only? how often?
 - build proper user dashboard and [logout button - done]
     - list of characters linked
-        - add/remove linked characters [ feature viable; not utilized yet ]
+        - add/remove linked characters [ feature viable; cannot remove character yet]
         - label characters import / export
-    - wallet balance
+    - wallet balance [done]
         - graph
     - number of transactions since last login
-    - transaction history
+    - transaction history 
         - categorize transactions automagically and [manually]
+    - active orders [done]
     - render eve map region map? and showcase asset stockpiles / number of transactions per station
-- build proper market analysis app page
+- build proper market analysis app page MARKET Analysis
     - market history [k-market hub jita;amarr;dodixie;rens]
     - market history [null region]
     - market active orders [station]
