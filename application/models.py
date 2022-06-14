@@ -25,7 +25,7 @@ class Users(db.Model, UserMixin):
     created_date = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
-        return '<User %r>' % self.character_name
+        return f'<User {self.character_name}: {self.character_id}>'
 
     def get_id(self):
         """ Required for flask-login """

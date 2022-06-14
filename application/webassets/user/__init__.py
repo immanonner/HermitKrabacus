@@ -9,6 +9,7 @@ bp = Blueprint(
 
 
 
+
 @bp.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
