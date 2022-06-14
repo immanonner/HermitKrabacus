@@ -1,27 +1,31 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content={{description}}>
-    <title>{{title}}</title>
-    <link rel="shortcut icon" href="{{url_for('base_bp.static', filename='img/favicon.ico')}}">
-    {% set style_name, jsB_name = request.blueprint + "_styles", request.blueprint + "_js" -%}
-    {%- assets style_name -%}
-    <link rel="stylesheet" type="text/css" href="{{ASSET_URL}}"/>
-    {%- endassets %}
-  </head>
-  <body>
-    {% include 'navigation.html' -%}
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-          {% for category, message in messages %}
-              <p>{{message}}</p>
-          {% endfor %}
-      {% endif %}
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content={{description}}>
+  <title>{{title}}</title>
+  <link rel="shortcut icon" href="{{url_for('base_bp.static', filename='img/favicon.ico')}}">
+  {% set style_name, jsB_name = request.blueprint + "_styles", request.blueprint + "_js" -%}
+  {%- assets style_name -%}
+  <link rel="stylesheet" type="text/css" href="{{ASSET_URL}}" />
+  {%- endassets %}
+</head>
+
+<body>
+  {% include 'navigation.html' -%}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  {% for category, message in messages %}
+  <p>{{message}}</p>
+  {% endfor %}
+  {% endif %}
   {% endwith %}
-    {% block content -%}{% endblock %}
-    {%- assets jsB_name %}    <script src="{{ASSET_URL}}"></script>
-    {%- endassets %}
-  </body>
+  {% block content -%}{% endblock %}
+  {%- assets jsB_name %}
+  <script src="{{ASSET_URL}}"></script>
+  {%- endassets %}
+</body>
+
 </html>

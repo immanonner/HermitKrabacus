@@ -1,15 +1,15 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <div class="container">
-        <h1>{{title}}</h1>
-        <p>{{description}}</p>
-        {% if current_user.is_authenticated %}
-            <p>{{current_user.character_name}} is logged in!</p>
-        {% else %}
-        <button class="btn btn-primary" onclick="window.location.href='{{ url_for('login') }}'">Login</button>
-        {% endif %}
-        
-    </div>
-    <canvas id="mtx"></canvas>
+<div class="container">
+    <h1>{{title}}</h1>
+    <p>{{description}}</p>
+    {% if current_user.is_authenticated %}
+    <p>{{current_user.character_name}} is logged in!</p>
+    {% else %}
+    <button class="btn btn-primary" onclick="window.location.href='{{ url_for('login') }}'">Login</button>
+    {% endif %}
+
+</div>
+<canvas id="mtx"></canvas>
 {% endblock %}
