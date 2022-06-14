@@ -1,8 +1,10 @@
-from . import db
-from datetime import datetime
 import time
+from datetime import datetime
+
 from flask_login import UserMixin
 from sqlalchemy import null
+
+from . import db
 
 # -----------------------------------------------------------------------
 # Database models

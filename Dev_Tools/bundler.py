@@ -1,7 +1,7 @@
 """Compile static assets."""
-from webassets import Environment
-from webassets import Bundle
 import os
+
+from webassets import Bundle, Environment
 
 assets = Environment(
     directory='application/webpages',

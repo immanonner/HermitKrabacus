@@ -1,6 +1,8 @@
-from flask import render_template, Blueprint
+from flask import Blueprint, render_template
 from flask_login import current_user, login_required
+
 from . import esi_operations
+
 bp = Blueprint(
     'user_bp', __name__,
         static_folder='./static',

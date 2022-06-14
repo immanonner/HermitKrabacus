@@ -1,15 +1,13 @@
+from config import *
+from esipy import EsiApp, EsiClient, EsiSecurity, cache
 from flask import Flask
+from flask_assets import Environment
+from flask_login import LoginManager
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_utils import database_exists
-from flask_migrate import Migrate
-from flask_login import LoginManager
-from flask_assets import Environment
-from esipy import EsiApp, EsiSecurity, EsiClient, cache
-from config import *
+
 from application.assets import compile_static_assets
-
-
-
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -17,7 +15,7 @@ login_manager = LoginManager()
 assets = Environment()
 f_cache = cache.FileCache(path="./f_cache")
 # create the eve app interface
-esiapp = EsiApp(cache=f_cache, cache_time=0).get_latest_swagger
+esiapp = EsiApp(cache=f_cache, cache_time=None).get_latest_swagger
 
 # init the security object
 esisecurity = EsiSecurity(
@@ -49,7 +47,7 @@ def init_app():
         import application.auth
         # Include our Routes to Register all Blueprints
         import application.routes
-        
+
         # bundle (js -> jsmin; less->cssmin)
         if app.config['FLASK_ENV'] == 'development':
             compile_static_assets(assets, default_bp_name="base_bp")

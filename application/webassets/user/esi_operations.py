@@ -1,16 +1,15 @@
 
 # get each linked eve online user information such as wallet, characters, etc.
+from concurrent.futures import ThreadPoolExecutor
+
+from application import esiapp, esiclient
+from application.models import Users, db
+from config import *
+from esipy import EsiClient, EsiSecurity
+from esipy.exceptions import APIException
 from flask import flash
 from flask_login import current_user
-from requests import request
-from application import esiapp, esisecurity, esiclient
-from application.models import db, Users
-from esipy import EsiSecurity, EsiClient
-from esipy.exceptions import APIException
-from config import *
-from concurrent.futures import ThreadPoolExecutor
-from pyswagger.io import SwaggerRequest as Request
-from pyswagger.io import SwaggerResponse as Response
+
 
 def gen_auth_esiclient(user:Users) -> EsiClient:
     """ we use a toon's information to __init__ a unique esiclient to make requests. 
@@ -48,7 +47,6 @@ def threaded_user_mutli_request(toon):
     """
     Args:
         toon: Users()
-        request_bundle: list of requests, responses to be made
     """
     client = gen_auth_esiclient(toon)
     wallet_op = esiapp.op \

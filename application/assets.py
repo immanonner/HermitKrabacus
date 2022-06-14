@@ -1,7 +1,9 @@
 """Compile static assets."""
+import os
+
 from flask import current_app as app
 from flask_assets import Bundle, Environment
-import os
+
 
 def compile_static_assets(assets: Environment, default_bp_name: str=None):
     """ Configure and build static asset (js/css) bundles.

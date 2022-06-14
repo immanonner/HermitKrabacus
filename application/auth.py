@@ -1,11 +1,16 @@
-from flask import current_app as app, flash, redirect, url_for, session, request
-from sqlalchemy import null
-from .models import db, Users
-from flask_login import login_user, logout_user, current_user, login_required
-from . import login_manager, esiclient, esisecurity
+import hashlib
+import hmac
+import random
+
 from esipy.exceptions import APIException
+from flask import current_app as app
+from flask import flash, redirect, request, session, url_for
+from flask_login import current_user, login_required, login_user, logout_user
+from sqlalchemy import null
 from sqlalchemy.exc import NoResultFound
-import random, hmac, hashlib
+
+from . import esiclient, esisecurity, login_manager
+from .models import Users, db
 
 
 # -----------------------------------------------------------------------
