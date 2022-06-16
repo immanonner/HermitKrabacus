@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import current_user, login_required
-import esi_operations
+from . import esi_operations
 
 bp = Blueprint(
     'market_bp', __name__,
