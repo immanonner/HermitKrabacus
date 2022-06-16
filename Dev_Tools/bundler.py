@@ -4,7 +4,7 @@ import os
 from webassets import Bundle, Environment
 
 assets = Environment(
-    directory='application/webpages',
+    directory='application/webassets',
     url='/static', cache=False, manifest=False)
 
 def compile_static_assets(assets: Environment, default_bp_name: str=None):
