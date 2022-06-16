@@ -11,6 +11,20 @@
                 "panel": "new",
                 "close": true
             }
+        },
+                {
+            "label": "Build new webpage dir and boilerplate code",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}\\Dev_Tools\\make_blank_webpage.py"
+            ],
+            "type": "shell",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new",
+                "close": false
+            }
         }
     ]
 }
