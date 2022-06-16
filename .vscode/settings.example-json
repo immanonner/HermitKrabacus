@@ -11,5 +11,8 @@
         "f_cache": true
     },
     "explorerExclude.backup": null,
-    "python.terminal.activateEnvironment": false
+    "editor.fontSize": 18,
+    "workbench.tree.indent": 15,
+    // disable automatic venv activation for tasks
+    "python.terminal.activateEnvironment": false,
 }
