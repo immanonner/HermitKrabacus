@@ -1,12 +1,13 @@
 import pathlib
+
+
 def make_blank_webpage(page_name, login_required=False):
     """
     Create a blank webpage directory and boilerplate code.
     """
     page_dir = f"application/webassets/{page_name}"
-    
-    
-    pathlib.Path(page_dir).mkdir(parents=True, exist_ok=False)    
+
+    pathlib.Path(page_dir).mkdir(parents=True, exist_ok=False)
     with open(page_dir + "/__init__.py", 'w') as f:
         f.write(f'''\
 from flask import Blueprint, render_template
@@ -24,11 +25,11 @@ bp = Blueprint(
 def {page_name}():
     # {page_name}
     return render_template(
-        'dashboard.html',
+        '{page_name}.html',
         title="{page_name} title",
         description="{page_name} description",)      
 ''')
-    
+
     templates_dir = f"{page_dir}/templates"
     pathlib.Path(templates_dir).mkdir(parents=True, exist_ok=False)
     with open(templates_dir + f"/{page_name}.html", 'w') as f:

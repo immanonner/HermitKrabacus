@@ -1,11 +1,12 @@
 from flask import Blueprint, render_template
 from flask_login import current_user, login_required
+import esi_operations
 
 bp = Blueprint(
     'market_bp', __name__,
-        static_folder='./static',
-        template_folder='./templates',
-        url_prefix='/market')
+    static_folder='./static',
+    template_folder='./templates',
+    url_prefix='/market')
 
 
 @bp.route('/market', methods=['GET'])
@@ -13,6 +14,6 @@ bp = Blueprint(
 def market():
     # market
     return render_template(
-        'dashboard.html',
+        'market.html',
         title="market title",
-        description="market description",)      
+        description="market description",)

@@ -11,4 +11,6 @@
         "f_cache": true
     },
     "explorerExclude.backup": null,
+    // disable automatic venv activation for tasks
+    "python.terminal.activateEnvironment": false,
 }
