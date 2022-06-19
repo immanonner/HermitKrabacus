@@ -2,7 +2,8 @@ import time
 from datetime import datetime
 
 from flask_login import UserMixin
-from sqlalchemy import null
+from sqlalchemy import ForeignKey, null
+from sqlalchemy.orm import relationship
 
 from . import db
 
@@ -13,6 +14,7 @@ from . import db
 
 class Users(db.Model, UserMixin):
     # our ID is the character ID from EVE API
+    __tablename__ = 'users'
     character_id = db.Column(db.BigInteger,
                              primary_key=True,
                              autoincrement=False)
@@ -62,3 +64,41 @@ class Users(db.Model, UserMixin):
         self.access_token = None
         self.access_token_expires = None
         self.refresh_token = None
+
+
+class invTypes(db.Model):
+    __tablename__ = 'invTypes'
+    typeID = db.Column(db.BigInteger,
+                       primary_key=True,
+                       autoincrement=False)
+    groupID = db.Column(db.BigInteger,
+                        autoincrement=False)
+    typeName = db.Column(db.String(999))
+    description = db.Column(db.String(9000), nullable=True)
+    mass = db.Column(db.Float)
+    volume = db.Column(db.Float)
+    capacity = db.Column(db.Float)
+    portionSize = db.Column(db.BigInteger)
+    raceID = db.Column(db.BigInteger, nullable=True)
+    basePrice = db.Column(db.Float, nullable=True)
+    published = db.Column(db.Boolean)
+    marketGroupID = db.Column(db.BigInteger, nullable=True)
+    iconID = db.Column(db.BigInteger, nullable=True)
+    soundID = db.Column(db.BigInteger, nullable=True)
+    graphicID = db.Column(db.BigInteger)
+
+    packed_volume = relationship(
+        'invVolumes', backref="invTypes", uselist=False)
+
+    def __repr__(self):
+        return f'<Item {self.typeID}: {self.typeName}>'
+
+
+class invVolumes(db.Model):
+    __tablename__ = 'invVolumes'
+    typeID = db.Column(db.BigInteger, ForeignKey(
+        invTypes.typeID), primary_key=True, autoincrement=False)
+    packVolume = db.Column(db.Float)
+
+    def __repr__(self):
+        return f'<{self.typeID} Packed Volume: {self.volume}>'

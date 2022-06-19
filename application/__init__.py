@@ -1,3 +1,4 @@
+from application.esi_operations import get_fuzz_latest
 from config import *
 from esipy import EsiApp, EsiClient, EsiSecurity, cache
 from flask import Flask
@@ -15,7 +16,7 @@ login_manager = LoginManager()
 assets = Environment()
 f_cache = cache.FileCache(path="./f_cache")
 # create the eve app interface
-esiapp = EsiApp(cache=f_cache, cache_time=None).get_latest_swagger
+esiapp = EsiApp(cache=f_cache).get_latest_swagger
 
 # init the security object
 esisecurity = EsiSecurity(
@@ -30,6 +31,7 @@ esiclient = EsiClient(
     cache=f_cache,
     headers={'User-Agent': ESI_USER_AGENT})
 
+
 def init_app():
     """Initialize the core application."""
     app = Flask(__name__,
@@ -42,7 +44,7 @@ def init_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     assets.init_app(app)
-    
+
     with app.app_context():
         import application.auth
         # Include our Routes to Register all Blueprints
@@ -53,9 +55,9 @@ def init_app():
             compile_static_assets(assets, default_bp_name="base_bp")
         if database_exists(db.engine.url) is False:
             db.create_all()
-        else:# creates the db if it doesnt exist
+        else:  # creates the db if it doesnt exist
             from flask_migrate import upgrade as db_upgrade
             db_upgrade()
-        
-        
+        from .esi_operations import update_eve_sde
+
         return app
