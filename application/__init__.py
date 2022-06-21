@@ -55,5 +55,8 @@ def init_app():
         else:  # creates the db if it doesnt exist
             from flask_migrate import upgrade as db_upgrade
             db_upgrade()
-        import application.esi_operations
+        # update eve item data
+        from application.fuzzworks import update_eve_sde
+        update_eve_sde(force=True)
+
         return app

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from flask_login import current_user, login_required
 
-from . import esi_operations
+from . import esi_user
 
 bp = Blueprint(
     'user_bp', __name__,
@@ -18,4 +18,4 @@ def dashboard():
         'dashboard.html',
         title=f"Hermit Krabacus Dashboard - {current_user.character_name}",
         description="Overview of User's account and your current settings.",
-        characters=esi_operations.get_user_eve_info())
+        characters=esi_user.get_user_eve_info())

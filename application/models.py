@@ -105,3 +105,15 @@ class invVolumes(db.Model):
 
     def __repr__(self):
         return f'<{self.typeID} Packed Volume: {self.volume}>'
+
+
+class SolarSystems(db.Model):
+    __tablename__ = 'solarSystems'
+    regionID = db.Column(db.BigInteger)
+    constellationID = db.Column(db.BigInteger)
+    solarSystemID = db.Column(db.BigInteger,
+                              primary_key=True,
+                              autoincrement=False)
+    solarSystemName = db.Column(db.String(100))
+    security = db.Column(db.Float)
+    securityClass = db.Column(db.String(2))

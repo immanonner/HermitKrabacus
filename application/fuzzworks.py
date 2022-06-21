@@ -11,9 +11,10 @@ from concurrent.futures import ThreadPoolExecutor
 import csv
 import requests
 from pathlib import Path
-from .models import invTypes, invVolumes, db
+from .models import invTypes, invVolumes, SolarSystems, db
 from application import f_cache
 import datetime as dt
+from config import EVE_NULL_REGIONS
 
 
 def get_fuzz_latest():
@@ -51,6 +52,19 @@ def get_fuzz_latest():
                     "typeID": rw.pop("typeID"),
                     "packVolume": float(rw.pop("volume"))
                 } for rw in resp_body]
+
+            if name == "mapSolarSystems":
+                # include only the appropriate regions named in config; keep only 5 columns from source data
+                resp_body = [{
+                    "regionID": int(rw.pop("regionID")),
+                    "constellationID": int(rw.pop("constellationID")),
+                    "solarSystemID": int(rw.pop("solarSystemID")),
+                    "solarSystemName": rw.pop("solarSystemName"),
+                    "security": float(rw.pop("security")),
+                    "securityClass": rw.pop("securityClass")
+                }
+                             for rw in resp_body
+                             if int(rw['regionID']) in EVE_NULL_REGIONS]
         else:
             resp_body = resp.status_code
         return {name: resp_body}
@@ -58,7 +72,8 @@ def get_fuzz_latest():
     with ThreadPoolExecutor(max_workers=2) as pool:
         fuzz_urls = [
             r"https://www.fuzzwork.co.uk/dump/latest/invTypes.csv.bz2",
-            r"https://www.fuzzwork.co.uk/dump/latest/invVolumes.csv.bz2"
+            r"https://www.fuzzwork.co.uk/dump/latest/invVolumes.csv.bz2",
+            r"https://www.fuzzwork.co.uk/dump/latest/mapSolarSystems.csv.bz2",
         ]
         results = {}
         for result in pool.map(__shim, fuzz_urls):
@@ -66,11 +81,11 @@ def get_fuzz_latest():
     return results
 
 
-def update_eve_sde():
+def update_eve_sde(force=False):
     # check fuzz sde current as of date in cache
     sde_cao = f_cache.get('sde_cao')
-    if sde_cao is not None and dt.date.today() - sde_cao >= dt.timedelta(
-            days=1):
+    delta = dt.date.today() - sde_cao
+    if sde_cao is not None and delta >= dt.timedelta(days=1) or force:
         # pull data from latest fuzz repo / convert response to list of dicts / insert into db
         fuzz_data = get_fuzz_latest()
         if type(fuzz_data['invTypes'][0]) is dict:
@@ -81,34 +96,18 @@ def update_eve_sde():
             invVolumes.query.delete()
             db.session.execute(invVolumes.__table__.insert(),
                                fuzz_data['invVolumes'])
-
         # join tables and replace the values of the unpacked volumes with the packed versions if applicable
         db.session.execute("""UPDATE invTypes
-                        set volume=(SELECT packVolume
-                                    from invVolumes
-                                    where typeID=invTypes.typeID)
-                        where EXISTS(SELECT packVolume
-                                        from invVolumes
-                                        where typeID=invTypes.typeID)""")
+                              set volume=(SELECT packVolume
+                                          from invVolumes
+                                          where typeID=invTypes.typeID)
+                              where EXISTS(SELECT packVolume
+                                           from invVolumes
+                                           where typeID=invTypes.typeID)""")
+        if type(fuzz_data['mapSolarSystems'][0]) is dict:
+            SolarSystems.query.delete()
+            db.session.execute(SolarSystems.__table__.insert(),
+                               fuzz_data['mapSolarSystems'])
         db.session.commit()
         # set new cao
         f_cache.set('sde_cao', dt.date.today(), expire=86400)
-
-
-update_eve_sde()
-#     raw_types_df = pd.read_csv(StringIO(results.get('invTypes')))
-#     raw_pack_vol_df = pd.read_csv(
-#         StringIO(results.get('invVolumes'))).astype({'volume': 'float64'})
-#     merged_df = pd.merge(raw_types_df, raw_pack_vol_df,
-#                          on='typeID', suffixes=('_lt', '_rt'), how='left')
-#     # Finally we use np.where to conditionally select the values we need
-#     merged_df['volume'] = np.where(merged_df['volume_rt'].isna(
-#     ), merged_df['volume_lt'], merged_df['volume_rt'])
-
-#     # Drop columns which are not needed in output
-#     merged_df.drop(['volume_lt', 'volume_rt'], axis=1, inplace=True)
-#     merged_df[((merged_df.published > 0) &
-#                (merged_df.marketGroupID != 'None') &
-#                (merged_df.typeName.str.match(
-#                    r"^((?!SKIN|Men's|Women's|Blueprint|Formula).)*$"
-#                )))].to_sql("invTypes", db.engine, if_exists="replace")
