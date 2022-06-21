@@ -46,7 +46,6 @@ def init_app():
         import application.auth
         # Include our Routes to Register all Blueprints
         import application.routes
-
         # bundle (js -> jsmin; less->cssmin)
         if app.config['FLASK_ENV'] == 'development':
             compile_static_assets(assets, default_bp_name="base_bp")
