@@ -46,9 +46,12 @@ class Users(db.Model, UserMixin):
     def get_sso_data(self):
         """ Little "helper" function to get formated data for esipy security"""
         return {
-            'access_token': self.access_token,
-            'refresh_token': self.refresh_token,
-            'expires_in': (self.access_token_expires - datetime.utcnow()).total_seconds()
+            'access_token':
+                self.access_token,
+            'refresh_token':
+                self.refresh_token,
+            'expires_in':
+                (self.access_token_expires - datetime.utcnow()).total_seconds()
         }
 
     def update_token(self, token_response):
@@ -68,11 +71,8 @@ class Users(db.Model, UserMixin):
 
 class invTypes(db.Model):
     __tablename__ = 'invTypes'
-    typeID = db.Column(db.BigInteger,
-                       primary_key=True,
-                       autoincrement=False)
-    groupID = db.Column(db.BigInteger,
-                        autoincrement=False)
+    typeID = db.Column(db.BigInteger, primary_key=True, autoincrement=False)
+    groupID = db.Column(db.BigInteger, autoincrement=False)
     typeName = db.Column(db.String(999))
     description = db.Column(db.String(9000), nullable=True)
     mass = db.Column(db.Float)
@@ -87,8 +87,9 @@ class invTypes(db.Model):
     soundID = db.Column(db.BigInteger, nullable=True)
     graphicID = db.Column(db.BigInteger)
 
-    packed_volume = relationship(
-        'invVolumes', backref="invTypes", uselist=False)
+    packed_volume = relationship('invVolumes',
+                                 backref="invTypes",
+                                 uselist=False)
 
     def __repr__(self):
         return f'<Item {self.typeID}: {self.typeName}>'
@@ -96,8 +97,10 @@ class invTypes(db.Model):
 
 class invVolumes(db.Model):
     __tablename__ = 'invVolumes'
-    typeID = db.Column(db.BigInteger, ForeignKey(
-        invTypes.typeID), primary_key=True, autoincrement=False)
+    typeID = db.Column(db.BigInteger,
+                       ForeignKey(invTypes.typeID),
+                       primary_key=True,
+                       autoincrement=False)
     packVolume = db.Column(db.Float)
 
     def __repr__(self):

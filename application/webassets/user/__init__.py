@@ -10,8 +10,6 @@ bp = Blueprint(
         url_prefix='/user')
 
 
-
-
 @bp.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
@@ -21,4 +19,3 @@ def dashboard():
         title=f"Hermit Krabacus Dashboard - {current_user.character_name}",
         description="Overview of User's account and your current settings.",
         characters=esi_operations.get_user_eve_info())
-

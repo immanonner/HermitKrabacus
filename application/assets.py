@@ -5,7 +5,7 @@ from flask import current_app as app
 from flask_assets import Bundle, Environment
 
 
-def compile_static_assets(assets: Environment, default_bp_name: str=None):
+def compile_static_assets(assets: Environment, default_bp_name: str = None):
     """ Configure and build static asset (js/css) bundles.
         bundle paths are relative the assets environment directory
         that env directory is relative to your flask app static directory <default>, or the static directory of a Flask blueprint.
@@ -32,23 +32,27 @@ def compile_static_assets(assets: Environment, default_bp_name: str=None):
     """
     for bp in app.iter_blueprints():
         if default_bp_name is not None and bp.name != default_bp_name:
-            js_bundle_path_arg =[f'{default_bp_name}/*.js', f'{bp.name}/*.js']
-            less_bundle_path_arg = [p.replace("*.js","*.less") for p in js_bundle_path_arg]
+            js_bundle_path_arg = [f'{default_bp_name}/*.js', f'{bp.name}/*.js']
+            less_bundle_path_arg = [
+                p.replace("*.js", "*.less") for p in js_bundle_path_arg
+            ]
         else:
             js_bundle_path_arg = [f'{bp.name}/*.js']
             less_bundle_path_arg = [f'{bp.name}/*.less']
 
-        js_bundle = assets.register(f'{bp.name}_js',
-            Bundle(
-                    *js_bundle_path_arg,
-                    filters='jsmin',
-                    output=f'{bp.name}/dist/{bp.name.replace("_bp","")}.min.js'))
+        js_bundle = assets.register(
+            f'{bp.name}_js',
+            Bundle(*js_bundle_path_arg,
+                   filters='jsmin',
+                   output=f'{bp.name}/dist/{bp.name.replace("_bp","")}.min.js'))
 
-        less_bundle = assets.register(f'{bp.name}_styles',
+        less_bundle = assets.register(
+            f'{bp.name}_styles',
             Bundle(
-                    *less_bundle_path_arg,
-                    filters='less,cssmin',
-                    output=f'{bp.name}/dist/{bp.name.replace("_bp","")}.min.css',))
+                *less_bundle_path_arg,
+                filters='less,cssmin',
+                output=f'{bp.name}/dist/{bp.name.replace("_bp","")}.min.css',
+            ))
 
         if os.environ['FLASK_ENV'] == 'development':
             js_bundle.build()

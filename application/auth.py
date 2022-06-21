@@ -23,7 +23,7 @@ def load_user(character_id):
         toon = Users.query.get(character_id)
         if toon is not None:
             esisecurity.update_token(toon.get_sso_data())
-            if esisecurity.is_token_expired() :
+            if esisecurity.is_token_expired():
                 try:
                     # refresh token
                     # todo: verify owner hash is the same - necessary?
@@ -36,8 +36,9 @@ def load_user(character_id):
                     toon.clear_esi_tokens()
                     db.session.commit()
                     return None
-        return None           
+        return None
     return None
+
 
 @login_manager.unauthorized_handler
 def unauthorized():
@@ -52,10 +53,9 @@ def gen_state_token(length=40):
     random_string = ''.join(rand.choice(chars) for _ in range(length))
     return hmac.new(
         app.config.get('ESI_SECRET_KEY').encode('utf-8'),
-        random_string.encode('utf-8'),
-        hashlib.sha256
-    ).hexdigest()
-    
+        random_string.encode('utf-8'), hashlib.sha256).hexdigest()
+
+
 @app.route('/evelogout')
 @login_required
 def logout(switch=False):
@@ -65,6 +65,7 @@ def logout(switch=False):
     if switch:
         return redirect(url_for('login', switch=False))
     return redirect(url_for("home_bp.home"))
+
 
 @app.route('/evelogin')
 def login(link=False, switch=False):
@@ -78,13 +79,12 @@ def login(link=False, switch=False):
             current_user.link_token = link_token
             db.session.commit()
         else:
-            link_token = current_user.link_token    
+            link_token = current_user.link_token
         session['link_token'] = link_token
     state_token = gen_state_token()
     session['token'] = state_token
     auth_uri = r'https://login.eveonline.com/v2/oauth/authorize?response_type=code&redirect_uri=%s&client_id=%s%s%s' % (
-        app.config.get('ESI_CALLBACK'),
-        app.config.get('ESI_CLIENT_ID'),
+        app.config.get('ESI_CALLBACK'), app.config.get('ESI_CLIENT_ID'),
         '&scope=%s' % ' '.join(app.config.get('ESI_SCOPES')),
         '&state=%s' % state_token)
     return redirect(auth_uri)
@@ -121,9 +121,8 @@ def callback():
     # todo: verify owner hash is the same even necessary?
     try:
         user = Users.query.filter(
-            Users.character_id == cdata['sub'].split(':')[2],
-            ).one()
-    
+            Users.character_id == cdata['sub'].split(':')[2],).one()
+
     except NoResultFound:
         user = Users()
         user.character_id = cdata['sub'].split(':')[2]

@@ -1,4 +1,3 @@
-from application.esi_operations import get_fuzz_latest
 from config import *
 from esipy import EsiApp, EsiClient, EsiSecurity, cache
 from flask import Flask
@@ -19,17 +18,15 @@ f_cache = cache.FileCache(path="./f_cache")
 esiapp = EsiApp(cache=f_cache).get_latest_swagger
 
 # init the security object
-esisecurity = EsiSecurity(
-    redirect_uri=ESI_CALLBACK,
-    client_id=ESI_CLIENT_ID,
-    secret_key=ESI_SECRET_KEY,
-    headers={'User-Agent': ESI_USER_AGENT})
+esisecurity = EsiSecurity(redirect_uri=ESI_CALLBACK,
+                          client_id=ESI_CLIENT_ID,
+                          secret_key=ESI_SECRET_KEY,
+                          headers={'User-Agent': ESI_USER_AGENT})
 
 # init the client
-esiclient = EsiClient(
-    security=esisecurity,
-    cache=f_cache,
-    headers={'User-Agent': ESI_USER_AGENT})
+esiclient = EsiClient(security=esisecurity,
+                      cache=f_cache,
+                      headers={'User-Agent': ESI_USER_AGENT})
 
 
 def init_app():
@@ -58,6 +55,5 @@ def init_app():
         else:  # creates the db if it doesnt exist
             from flask_migrate import upgrade as db_upgrade
             db_upgrade()
-        from .esi_operations import update_eve_sde
-
+        import application.esi_operations
         return app

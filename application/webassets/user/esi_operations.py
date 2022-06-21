@@ -1,4 +1,3 @@
-
 # get each linked eve online user information such as wallet, characters, etc.
 from concurrent.futures import ThreadPoolExecutor
 
@@ -22,11 +21,10 @@ def gen_auth_esiclient(user: Users) -> EsiClient:
     """
 
     # init the security object
-    security = EsiSecurity(
-        redirect_uri=ESI_CALLBACK,
-        client_id=ESI_CLIENT_ID,
-        secret_key=ESI_SECRET_KEY,
-        headers={'User-Agent': ESI_USER_AGENT})
+    security = EsiSecurity(redirect_uri=ESI_CALLBACK,
+                           client_id=ESI_CLIENT_ID,
+                           secret_key=ESI_SECRET_KEY,
+                           headers={'User-Agent': ESI_USER_AGENT})
     security.update_token(user.get_sso_data())
     if security.is_token_expired:
         try:
@@ -34,14 +32,13 @@ def gen_auth_esiclient(user: Users) -> EsiClient:
         except (APIException, AttributeError):
             user.clear_esi_tokens()
             db.session.commit()
-            flash(
-                f'Error refreshing esi token\'s for {user.character_name}', 'danger')
+            flash(f'Error refreshing esi token\'s for {user.character_name}',
+                  'danger')
             return False
 
     # init the client
-    genclient = EsiClient(
-        security=security,
-        headers={'User-Agent': ESI_USER_AGENT})
+    genclient = EsiClient(security=security,
+                          headers={'User-Agent': ESI_USER_AGENT})
     return genclient
 
 
@@ -53,10 +50,10 @@ def threaded_user_mutli_request(toon):
     client = gen_auth_esiclient(toon)
     wallet_op = esiapp.op['get_characters_character_id_wallet'](
         character_id=toon.character_id)
-    orders_op = esiapp.op['get_characters_character_id_orders'](character_id=toon.character_id,
-                                                                token=client.security.access_token)
-    transacts_op = esiapp.op['get_characters_character_id_wallet_transactions'](character_id=toon.character_id,
-                                                                                token=client.security.access_token)
+    orders_op = esiapp.op['get_characters_character_id_orders'](
+        character_id=toon.character_id, token=client.security.access_token)
+    transacts_op = esiapp.op['get_characters_character_id_wallet_transactions'](
+        character_id=toon.character_id, token=client.security.access_token)
     request_bundle = [wallet_op, orders_op, transacts_op]
     return client.multi_request(request_bundle)
 
@@ -65,7 +62,8 @@ def get_user_eve_info():
 
     results = []
     with ThreadPoolExecutor(max_workers=10) as pool:
-        for result in pool.map(threaded_user_mutli_request, current_user.linked_characters()):
+        for result in pool.map(threaded_user_mutli_request,
+                               current_user.linked_characters()):
             results.append(result)
         # reset esi tokens to origin character's tokens
     results = nested_responses_to_dict(results)
@@ -94,7 +92,8 @@ def nested_responses_to_dict(responses):
                 "get_characters_character_id_", "")
             if res.status != 200:
                 flash(
-                    f'Error getting eve info for {toon.character_name}: {req_title}', 'danger')
+                    f'Error getting eve info for {toon.character_name}: {req_title}',
+                    'danger')
                 continue
             account_data[toon.character_name][req_title] = res.data
     return account_data
