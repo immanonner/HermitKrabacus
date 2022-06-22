@@ -1,8 +1,14 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<script type="text/javascript">
+    ss = {{ solarsystems | tojson }}
+</script>
 <div class="container">
     <h1>{{title}}</h1>
     <p>{{description}}</p>
+    <form autocomplete="off"><input type="text" name="q" id="q" onKeyUp="showResults(this.value)" />
+        <div id="result"></div>
+    </form>
 </div>
 {% endblock %}

@@ -64,7 +64,7 @@ class Matrix_App {
 
   getFontMetrics(fontString) {
     this.ctx.font = fontString;
-    let metrics = this.ctx.measureText("M"); 
+    let metrics = this.ctx.measureText("M");
     let fontHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
     return {
       fwidth: metrics.width,
@@ -209,14 +209,14 @@ const matrix_canvas = document.getElementById('mtx');
 const app = new Matrix_App(matrix_canvas, window.innerWidth, window.innerHeight);
 
 
-  // run app in loop
-function run () {
-    app.getDrops();
-    app.ctx.fillStyle = '#232323';
-    app.ctx.fillRect(0, 0, app.maxX_pxl, app.maxY_pxl);
-    app.makeItRainText();
-    frameid = requestAnimationFrame(run);
-  }
+// run app in loop
+function run() {
+  app.getDrops();
+  app.ctx.fillStyle = '#232323';
+  app.ctx.fillRect(0, 0, app.maxX_pxl, app.maxY_pxl);
+  app.makeItRainText();
+  frameid = requestAnimationFrame(run);
+}
 run()
 
 window.onresize = function () {

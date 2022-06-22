@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template
 from flask_login import current_user, login_required
+from . import esi_market
 
 bp = Blueprint('market_bp',
                __name__,
@@ -12,8 +13,7 @@ bp = Blueprint('market_bp',
 @login_required
 def market():
     # market
-    return render_template(
-        'market.html',
-        title="market title",
-        description="market description",
-    )
+    return render_template('market.html',
+                           title="market title",
+                           description="market description",
+                           solarsystems=esi_market.get_solarsystems())
