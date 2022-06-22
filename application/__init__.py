@@ -56,6 +56,6 @@ def init_app():
             db_upgrade()
         # update eve item data
         from application.fuzzworks import update_eve_sde
-        update_eve_sde(force=True)
+        update_eve_sde(force=False)
 
         return app

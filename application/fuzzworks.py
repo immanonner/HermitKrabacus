@@ -30,20 +30,20 @@ def get_fuzz_latest():
             # convert None values with list/dict comprehension
             if name == "invTypes":
                 resp_body = [{
-                    k: None if v == 'None' else v for k, v in rw.items()
+                    k: None if v == 'None' else v
+                    for k, v in rw.items()
                 } for rw in resp_body]
                 # CLEAN DATA BEFORE COMMITING TO DB: convert ints to bools in "published" column keep ONLY the published ones and omit unnecessary item pollution
                 resp_body = [
                     {
                         k: bool(int(v)) if k == 'published' else v
                         for k, v in rw.items()
-                    }
-                    for rw in resp_body
+                    } for rw in resp_body
                     if rw['published'] == '1' and 'SKIN' not in rw['typeName']
                     and 'Blueprint' not in rw['typeName'] and 'Formula' not in
-                    rw['typeName'] and "Men's" not in rw['typeName'] and
-                    "Women's" not in rw['typeName'] and
-                    rw['marketGroupID'] != None
+                    rw['typeName'] and "Men's" not in rw['typeName']
+                    and "Women's" not in rw['typeName']
+                    and rw['marketGroupID'] != None
                 ]
 
             if name == "invVolumes":
@@ -62,8 +62,7 @@ def get_fuzz_latest():
                     "solarSystemName": rw.pop("solarSystemName"),
                     "security": float(rw.pop("security")),
                     "securityClass": rw.pop("securityClass")
-                }
-                             for rw in resp_body
+                } for rw in resp_body
                              if int(rw['regionID']) in EVE_NULL_REGIONS]
         else:
             resp_body = resp.status_code
@@ -84,8 +83,8 @@ def get_fuzz_latest():
 def update_eve_sde(force=False):
     # check fuzz sde current as of date in cache
     sde_cao = f_cache.get('sde_cao')
-    delta = dt.date.today() - sde_cao
-    if sde_cao is not None and delta >= dt.timedelta(days=1) or force:
+    if sde_cao is None or dt.date.today() - sde_cao >= dt.timedelta(
+            days=1) or force:
         # pull data from latest fuzz repo / convert response to list of dicts / insert into db
         fuzz_data = get_fuzz_latest()
         if type(fuzz_data['invTypes'][0]) is dict:

@@ -47,18 +47,18 @@ class Users(db.Model, UserMixin):
         """ Little "helper" function to get formated data for esipy security"""
         return {
             'access_token':
-                self.access_token,
+            self.access_token,
             'refresh_token':
-                self.refresh_token,
+            self.refresh_token,
             'expires_in':
-                (self.access_token_expires - datetime.utcnow()).total_seconds()
+            (self.access_token_expires - datetime.utcnow()).total_seconds()
         }
 
     def update_token(self, token_response):
         """ helper function to update token data from SSO response """
         self.access_token = token_response['access_token']
         self.access_token_expires = datetime.fromtimestamp(
-            time.time() + token_response['expires_in'],)
+            time.time() + token_response['expires_in'], )
         if 'refresh_token' in token_response:
             self.refresh_token = token_response['refresh_token']
 
@@ -117,5 +117,3 @@ class SolarSystems(db.Model):
     solarSystemName = db.Column(db.String(100))
     security = db.Column(db.Float)
     securityClass = db.Column(db.String(2))
-
-# yeet

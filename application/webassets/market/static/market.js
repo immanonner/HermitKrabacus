@@ -10,7 +10,7 @@ function autocompleteMatch(input) {
     if (input == '') {
         return [];
     }
-    var reg = new RegExp(input)
+    var reg = new RegExp(input.toUpperCase())
     var system_names = solarnames_list(ss)
     return system_names.filter(function (term) {
         if (term.match(reg)) {
@@ -21,11 +21,26 @@ function autocompleteMatch(input) {
 
 function showResults(val) {
     res = document.getElementById("result");
+
     res.innerHTML = '';
     let list = '';
     let terms = autocompleteMatch(val);
     for (i = 0; i < terms.length; i++) {
-        list += '<li>' + terms[i] + '</li>';
+        list += '<li onclick=update_input("' + terms[i] + '")>' + terms[i] + '</li>';
     }
-    res.innerHTML = '<ul>' + list + '</ul>';
+    if (val.length >= 2 && terms.length > 1) {
+        res.innerHTML = '<ul>' + list + '</ul>';
+    }
+    else if (val.length >= 3 && terms.length == 1) {
+        res.innerHTML = ""
+        btn = document.getElementById('get_station_market_btn');
+        btn.style.visibility = 'visible';
+    }
+    else { res.innerHTML = "" }
+}
+
+function update_input(val) {
+    inp = document.getElementById("q");
+    inp.value = val;
+    showResults(val);
 }

@@ -9,7 +9,7 @@ bp = Blueprint('market_bp',
                url_prefix='/market')
 
 
-@bp.route('/market', methods=['GET'])
+@bp.route('/home/', methods=['GET'])
 @login_required
 def market():
     # market
@@ -17,3 +17,9 @@ def market():
                            title="market title",
                            description="market description",
                            solarsystems=esi_market.get_solarsystems())
+
+
+@bp.route('/solarsys_structures/', methods=['POST'])
+@login_required
+def solarsys_structures(system):
+    pass
