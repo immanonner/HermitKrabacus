@@ -117,3 +117,5 @@ class SolarSystems(db.Model):
     solarSystemName = db.Column(db.String(100))
     security = db.Column(db.Float)
     securityClass = db.Column(db.String(2))
+
+# yeet
