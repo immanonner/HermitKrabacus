@@ -21,7 +21,7 @@ function autocompleteMatch(input) {
 
 function showResults(val) {
     res = document.getElementById("result");
-
+    btn = document.getElementById('get_station_market_btn');
     res.innerHTML = '';
     let list = '';
     let terms = autocompleteMatch(val);
@@ -30,13 +30,16 @@ function showResults(val) {
     }
     if (val.length >= 2 && terms.length > 1) {
         res.innerHTML = '<ul>' + list + '</ul>';
+        btn.style.visibility = 'hidden';
     }
-    else if (val.length >= 3 && terms.length == 1) {
+    else if (terms.length == 1 && val == terms[0]) {
         res.innerHTML = ""
-        btn = document.getElementById('get_station_market_btn');
         btn.style.visibility = 'visible';
     }
-    else { res.innerHTML = "" }
+    else {
+        res.innerHTML = "";
+        btn.style.visibility = 'hidden';
+    }
 }
 
 function update_input(val) {

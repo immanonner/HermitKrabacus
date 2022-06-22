@@ -7,7 +7,8 @@
 <div class="container">
     <h1>{{title}}</h1>
     <p>{{description}}</p>
-    <form autocomplete="off"><input type="text" name="q" id="q" onKeyUp="showResults(this.value)" />
+    <form autocomplete="off"><input type="text" name="q" id="q" placeholder="Solar System Search"
+            onKeyUp="showResults(this.value)" />
         <div id="result"></div>
     </form>
     <button style="visibility:hidden" id="get_station_market_btn"
