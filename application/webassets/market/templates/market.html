@@ -7,12 +7,12 @@
 <div class="container">
     <h1>{{title}}</h1>
     <p>{{description}}</p>
-    <form autocomplete="off"><input type="text" name="q" id="q" placeholder="Solar System Search"
-            onKeyUp="showResults(this.value)" />
+    <form method="POST" action="{{url_for('market_bp.market')}}" autocomplete="off">
+        {{ form.hidden_tag() }}
+        {{form.system_name(placeholder="Solar System Search", onKeyUp="showResults(this.value)") }}
         <div id="result"></div>
+        <p>{{form.submit()}}</p>
     </form>
-    <button style="visibility:hidden" id="get_station_market_btn"
-        onclick="window.location.href='{{ url_for('market_bp.solarsys_structures') }}'">Get Available
-        Structures</button>
+
 </div>
 {% endblock %}
