@@ -11,11 +11,8 @@ function autocompleteMatch(input) {
     });
 }
 
-function showResults(val) {
-    let res = document.getElementById("result");
-    res.innerHTML = '';
+function build_selections(terms) {
     let selections = document.createElement("ul");
-    let terms = autocompleteMatch(val);
     for (i = 0; i < terms.length; i++) {
         let li = document.createElement("li");
         li.appendChild(document.createTextNode(terms[i]));
@@ -23,15 +20,28 @@ function showResults(val) {
         li.innertext = terms[i]
         selections.appendChild(li);
     }
+    return selections
+}
+
+function showResults(val) {
+    let res = document.getElementById("result");
+    res.innerHTML = '';
+    if (ss.length >= 5) {
+        const terms = autocompleteMatch(val);
+    }
+    else { const terms = ss }
+    let options = build_selections(terms)
     if (val.length >= 2 && terms.length > 1) {
-        res.innerHTML = selections.innerHTML;
+        res.innerHTML = options.innerHTML;
+    }
+    else if (val.length == 0 && ss.length <= 5) {
 
     }
-    else if (terms.length == 1 && val != terms[0]) {
-        update_input(terms[0])
+    else if (terms.length == 1 && val == terms[0]) {
+        res.innerHTML = "";
     }
     else {
-        res.innerHTML = "";;
+        res.innerHTML = options.innerHTML;;
 
     }
 }

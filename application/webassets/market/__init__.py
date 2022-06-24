@@ -17,6 +17,7 @@ def market():
     if sys_form.validate_on_submit():
         return redirect(
             url_for('market_bp.structures', sys_name=sys_form.search.data))
+
     return render_template('market.html',
                            title="market title",
                            description="market description",
@@ -34,12 +35,11 @@ def structures(sys_name):
         return redirect(
             url_for('market_bp.upwellMarket',
                     struc_id=struc_names[sys_form.search.data]))
-    return render_template(
-        'market.html',
-        title="Select Structure",
-        description=f'{sys_name} Market Structure Selection',
-        searchdata=[i for i in struc_names.keys()],
-        form=sys_form)
+    return render_template('market.html',
+                           title="Select Structure",
+                           description=f'{sys_name} Market Structure Selection',
+                           searchdata=[i for i in struc_names.keys()],
+                           form=sys_form)
 
 
 @bp.route('/upwellMarket/<struc_id>', methods=['GET'])
