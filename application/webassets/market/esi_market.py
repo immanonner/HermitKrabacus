@@ -8,6 +8,8 @@ from esipy import EsiClient, EsiSecurity
 from esipy.exceptions import APIException
 from flask import flash
 from flask_login import current_user
+import json
+import pandas as pd
 
 
 def get_solarsystems() -> list:
@@ -15,7 +17,7 @@ def get_solarsystems() -> list:
     return [rw[0] for rw in db.session.query(SolarSystems.solarSystemName)]
 
 
-def get_sys_structures(sys_name) -> dict:
+def get_sys_structures(sys_name: str) -> dict:
     struc_ids_req = esiapp.op['get_characters_character_id_search'](
         character_id=current_user.character_id,
         categories=['structure'],
@@ -42,14 +44,28 @@ def get_sys_structures(sys_name) -> dict:
     return results
 
 
-def get_struc_sell_orders(struc_id):
+def get_struc_sell_orders(struc_id: int) -> list:
     op = esiapp.op['get_markets_structures_structure_id'](
         structure_id=struc_id, token=current_user.access_token)
     struc_market_response = esiclient.request(op)
     if struc_market_response.status == 200:
-        if struc_market_response.header['X-Pages'][0] == 1:
-
-            pass
+        pages = struc_market_response.header['X-Pages'][0]
+        results = json.loads(struc_market_response.raw)
+        if pages > 1:
+            operations = []
+            for page in range(2, pages + 1):
+                operations.append(
+                    esiapp.op['get_markets_structures_structure_id'](
+                        page=page,
+                        structure_id=struc_id,
+                        token=current_user.access_token))
+            [
+                results.append(json.loads(rsp.raw))
+                for rq, rsp in esiclient.multi_request(operations,
+                                                       raw_body_only=True)
+                if rsp.status == 200
+            ]
+        return results
     else:
         flash(
             f"response status = <{struc_market_response.status}> structure sell order retrival failed",
@@ -57,6 +73,12 @@ def get_struc_sell_orders(struc_id):
     pass
 
 
-def get_structure_market_analysis(region_id, struc_id):
-    get_struc_sell_orders(struc_id)
+def include_empty_stock(sell_orders: list) -> list:
+    orders = pd.read_json(sell_orders)
+    pass
+
+
+def get_structure_market_analysis(region_id: int, struc_id: int):
+    structure_view = include_empty_stock(get_struc_sell_orders(struc_id))
+
     pass

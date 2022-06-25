@@ -27,7 +27,7 @@ function showResults(val) {
     let res = document.getElementById("result");
     res.innerHTML = '';
     if (ss.length <= 5) {
-        res.innerHTML = build_selections(ss).innerHTML
+        res.appendChild(build_selections(ss))
     } else {
         let terms = autocompleteMatch(val)
         let options = build_selections(terms)
@@ -35,7 +35,7 @@ function showResults(val) {
             res.innerHTML = "";
         }
         else {
-            res.innerHTML = options.innerHTML;
+            res.appendChild(options);
         }
     }
 }
