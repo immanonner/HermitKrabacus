@@ -26,23 +26,17 @@ function build_selections(terms) {
 function showResults(val) {
     let res = document.getElementById("result");
     res.innerHTML = '';
-    if (ss.length >= 5) {
-        const terms = autocompleteMatch(val);
-    }
-    else { const terms = ss }
-    let options = build_selections(terms)
-    if (val.length >= 2 && terms.length > 1) {
-        res.innerHTML = options.innerHTML;
-    }
-    else if (val.length == 0 && ss.length <= 5) {
-
-    }
-    else if (terms.length == 1 && val == terms[0]) {
-        res.innerHTML = "";
-    }
-    else {
-        res.innerHTML = options.innerHTML;;
-
+    if (ss.length <= 5) {
+        res.innerHTML = build_selections(ss).innerHTML
+    } else {
+        let terms = autocompleteMatch(val)
+        let options = build_selections(terms)
+        if (terms.length == 1 && val == terms[0]) {
+            res.innerHTML = "";
+        }
+        else {
+            res.innerHTML = options.innerHTML;
+        }
     }
 }
 

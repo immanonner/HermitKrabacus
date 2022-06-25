@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request, url_for, redirect
+from flask import Blueprint, render_template, url_for, redirect
 from flask_login import current_user, login_required
-from sqlalchemy import desc
+from application.models import SolarSystems
 from . import esi_market, forms_market
 
 bp = Blueprint('market_bp',
@@ -32,9 +32,12 @@ def structures(sys_name):
     struc_names = {value['name']: key for key, value in structures.items()}
     sys_form = forms_market.SearchForm()
     if sys_form.validate_on_submit():
+        ss = SolarSystems()
+        q = ss.query.filter(SolarSystems.solarSystemName == sys_name).first()
         return redirect(
             url_for('market_bp.upwellMarket',
-                    struc_id=struc_names[sys_form.search.data]))
+                    struc_id=struc_names[sys_form.search.data],
+                    region_id=q.regionID))
     return render_template('market.html',
                            title="Select Structure",
                            description=f'{sys_name} Market Structure Selection',
@@ -42,7 +45,8 @@ def structures(sys_name):
                            form=sys_form)
 
 
-@bp.route('/upwellMarket/<struc_id>', methods=['GET'])
+@bp.route('/upwellMarket/<region_id>/<struc_id>', methods=['GET'])
 @login_required
-def upwellMarket(struc_id):
+def upwellMarket(region_id, struc_id):
+    esi_market.get_structure_market_analysis(region_id, struc_id)
     pass
