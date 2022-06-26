@@ -59,12 +59,14 @@ def get_struc_sell_orders(struc_id: int) -> list:
                         page=page,
                         structure_id=struc_id,
                         token=current_user.access_token))
+            # multi request all pages of the market orders -> load them to results list(dict)
             [
                 results.append(json.loads(rsp.raw))
                 for rq, rsp in esiclient.multi_request(operations,
                                                        raw_body_only=True)
                 if rsp.status == 200
             ]
+            # clean the data in results
         return results
     else:
         flash(
@@ -74,7 +76,20 @@ def get_struc_sell_orders(struc_id: int) -> list:
 
 
 def include_empty_stock(sell_orders: list) -> list:
-    orders = pd.read_json(sell_orders)
+    orders = pd.DataFrame(sell_orders)
+    #select only sell orders and drop irrelevant columns
+    orders = orders[orders.is_buy_order != True].drop(columns=[
+        'duration', 'issued', 'min_volume', 'range', 'order_id', 'is_buy_order',
+        'volume_total'
+    ])
+    # group orders by type_id and calc remaining volumes and minimum price of each type
+    orders = orders.groupby('type_id').agg({
+        'volume_remain': 'sum',
+        'price': 'min'
+    })
+    # format currency column appropriately
+    # todo --  might mess with sorting functions
+    orders['price'].apply(lambda x: "${:.1f}k".format((x / 1000)))
     pass
 
 
