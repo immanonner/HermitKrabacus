@@ -17,6 +17,10 @@ def get_solarsystems() -> list:
     return [rw[0] for rw in db.session.query(SolarSystems.solarSystemName)]
 
 
+def get_types() -> list:
+    return sorted([rw[0] for rw in db.session.query(invTypes.typeID)])
+
+
 def get_sys_structures(sys_name: str) -> dict:
     struc_ids_req = esiapp.op['get_characters_character_id_search'](
         character_id=current_user.character_id,
@@ -72,13 +76,14 @@ def get_struc_sell_orders(struc_id: int) -> list:
         flash(
             f"response status = <{struc_market_response.status}> structure sell order retrival failed",
             "danger")
+    # todo error handle this
     pass
 
 
 def include_empty_stock(sell_orders: list) -> list:
-    orders = pd.DataFrame(sell_orders)
+    orders = pd.DataFrame(sell_orders).set_index('type_id', drop=True)
     #select only sell orders and drop irrelevant columns
-    orders = orders[orders.is_buy_order != True].drop(columns=[
+    orders = orders[orders.is_buy_order == False].drop(columns=[
         'duration', 'issued', 'min_volume', 'range', 'order_id', 'is_buy_order',
         'volume_total'
     ])
@@ -87,13 +92,64 @@ def include_empty_stock(sell_orders: list) -> list:
         'volume_remain': 'sum',
         'price': 'min'
     })
+    all_types = pd.read_sql("SELECT typeID, typeName, volume FROM invTypes",
+                            db.engine,
+                            index_col='typeID')
+
+    market_view = pd.merge(all_types,
+                           orders,
+                           how='left',
+                           left_index=True,
+                           right_index=True).fillna(value=0, axis=1).rename(
+                               columns={'volume_remain': 'stock_remaining'})
     # format currency column appropriately
     # todo --  might mess with sorting functions
-    orders['price'].apply(lambda x: "${:.1f}k".format((x / 1000)))
+    # orders['price'].apply(lambda x: "${:.1f}k".format((x / 1000)))
+    # include the index - type_id into the returned list of dicts "records"
+    return [
+        dict({'type_id': k}, **v)
+        for k, v in market_view.to_dict('index').items()
+    ]
+
+
+def get_region_history(reg_id: int) -> list:
+    all_relevant_types = get_types()
+    operations = []
+    for tid in all_relevant_types:
+        operations.append(esiapp.op['get_markets_region_id_history'](
+            type_id=tid, region_id=reg_id))
+    results = esiclient.multi_request(operations,
+                                      raw_body_only=True,
+                                      threads=100)
+    history = []
+    for rq, rsp in results:
+        record = {
+            'type_id': "",
+            'timespan': "",
+            'velocity': "",
+            'order_avg': "",
+            'yest_price_avg': "",
+            'sale_chance': ""
+        }
+        record['type_id'] = rq.query[1][1]
+        if rsp.status == 200:
+            hist_records = json.loads(rsp.raw)
+            date_delta = datetime.date.today() - datetime.date.fromisoformat(hist_records[0]['date'])
+            record['timespan'] = date_delta.days
+            record['velocity'] = 
+            record['order_avg'] = 
+            record['yest_price_avg'] = 
+            record['sale_chance'] = 
+            pass
+        else:
+            record = {
+                k: "error" if k != 'type_id' else v for k, v in record.items()
+            }
     pass
 
 
 def get_structure_market_analysis(region_id: int, struc_id: int):
+    history = get_region_history(region_id)
     structure_view = include_empty_stock(get_struc_sell_orders(struc_id))
 
     pass

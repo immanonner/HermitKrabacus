@@ -30,20 +30,23 @@ def get_fuzz_latest():
             # convert None values with list/dict comprehension
             if name == "invTypes":
                 resp_body = [{
-                    k: None if v == 'None' else v
-                    for k, v in rw.items()
+                    k: None if v == 'None' else v for k, v in rw.items()
                 } for rw in resp_body]
                 # CLEAN DATA BEFORE COMMITING TO DB: convert ints to bools in "published" column keep ONLY the published ones and omit unnecessary item pollution
                 resp_body = [
                     {
                         k: bool(int(v)) if k == 'published' else v
                         for k, v in rw.items()
-                    } for rw in resp_body
+                    }
+                    for rw in resp_body
                     if rw['published'] == '1' and 'SKIN' not in rw['typeName']
                     and 'Blueprint' not in rw['typeName'] and 'Formula' not in
-                    rw['typeName'] and "Men's" not in rw['typeName']
-                    and "Women's" not in rw['typeName']
-                    and rw['marketGroupID'] != None
+                    rw['typeName'] and "Men's" not in rw['typeName'] and
+                    "Women's" not in rw['typeName'] and
+                    "Proving" not in rw['typeName'] and
+                    "Cerebral Accelerator" not in rw['typeName'] and
+                    "skill accelerator" not in rw['typeName'] and
+                    "Hunt" not in rw['typeName'] and rw['marketGroupID'] != None
                 ]
 
             if name == "invVolumes":
@@ -62,7 +65,8 @@ def get_fuzz_latest():
                     "solarSystemName": rw.pop("solarSystemName"),
                     "security": float(rw.pop("security")),
                     "securityClass": rw.pop("securityClass")
-                } for rw in resp_body
+                }
+                             for rw in resp_body
                              if int(rw['regionID']) in EVE_NULL_REGIONS]
         else:
             resp_body = resp.status_code
