@@ -51,11 +51,11 @@ def init_app():
             compile_static_assets(assets, default_bp_name="base_bp")
         if database_exists(db.engine.url) is False:
             db.create_all()
-        else:  # creates the db if it doesnt exist
-            from flask_migrate import upgrade as db_upgrade
-            db_upgrade()
+        # else:  # creates the db if it doesnt exist
+        #     from flask_migrate import upgrade as db_upgrade
+        #     db_upgrade()
         # update eve item data
         from application.fuzzworks import update_eve_sde
-        update_eve_sde(force=True)
+        update_eve_sde(force=False)
 
         return app

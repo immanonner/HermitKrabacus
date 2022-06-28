@@ -1,11 +1,7 @@
 # get each linked eve online user information such as wallet, characters, etc.
-from concurrent.futures import ThreadPoolExecutor
-
-from application import esiapp, esiclient, esisecurity
-from application.models import Users, invTypes, invVolumes, SolarSystems, db
+from application import esiapp, esiclient
+from application.models import InvTypes, SolarSystems, StructureMarkets, db
 from config import *
-from esipy import EsiClient, EsiSecurity
-from esipy.exceptions import APIException
 from flask import flash
 from flask_login import current_user
 import json
@@ -18,7 +14,7 @@ def get_solarsystems() -> list:
 
 
 def get_types() -> list:
-    return sorted([rw[0] for rw in db.session.query(invTypes.typeID)])
+    return sorted([rw[0] for rw in db.session.query(InvTypes.typeID)])
 
 
 def get_sys_structures(sys_name: str) -> dict:
@@ -48,7 +44,7 @@ def get_sys_structures(sys_name: str) -> dict:
     return results
 
 
-def get_struc_sell_orders(struc_id: int) -> list:
+def get_struc_sell_orders(struc_id: int) -> list[dict]:
     op = esiapp.op['get_markets_structures_structure_id'](
         structure_id=struc_id, token=current_user.access_token)
     struc_market_response = esiclient.request(op)
@@ -80,7 +76,7 @@ def get_struc_sell_orders(struc_id: int) -> list:
     pass
 
 
-def include_empty_stock(sell_orders: list) -> list:
+def include_empty_stock(sell_orders: list) -> list[dict]:
     orders = pd.DataFrame(sell_orders).set_index('type_id', drop=True)
     #select only sell orders and drop irrelevant columns
     orders = orders[orders.is_buy_order == False].drop(columns=[
@@ -112,7 +108,7 @@ def include_empty_stock(sell_orders: list) -> list:
     ]
 
 
-def get_region_history(reg_id: int) -> list:
+def get_region_history(reg_id: int) -> list[dict]:
     all_relevant_types = get_types()
     operations = []
     for tid in all_relevant_types:
@@ -124,23 +120,29 @@ def get_region_history(reg_id: int) -> list:
     history = []
     for rq, rsp in results:
         record = {
-            'type_id': "",
-            'timespan': "",
-            'velocity': "",
-            'order_avg': "",
-            'yest_price_avg': "",
-            'sale_chance': ""
+            'type_id': rq.query[1][1],
+            'timespan': 0,
+            'velocity': 0,
+            'order_avg': 0,
+            'yest_price_avg': 0,
+            'sale_chance': 0.0
         }
-        record['type_id'] = rq.query[1][1]
         if rsp.status == 200:
-            hist_records = json.loads(rsp.raw)
-            date_delta = datetime.date.today() - datetime.date.fromisoformat(hist_records[0]['date'])
-            record['timespan'] = date_delta.days
-            record['velocity'] = 
-            record['order_avg'] = 
-            record['yest_price_avg'] = 
-            record['sale_chance'] = 
-            pass
+            if len(rsp.raw) <= 2:
+                continue
+            else:
+                hist_records = json.loads(rsp.raw)
+                date_delta = datetime.date.today(
+                ) - datetime.date.fromisoformat(hist_records[0]['date'])
+                record['timespan'] = date_delta.days
+                rec_df = pd.DataFrame(hist_records)
+                record['velocity'] = round(
+                    rec_df.volume.sum() / date_delta.days, 2)
+                record['order_avg'] = round(rec_df.order_count.mean(), 2)
+                record['yest_price_avg'] = hist_records[-1]['average']
+                record['sale_chance'] = round(rec_df.shape[0] / date_delta.days,
+                                              2)
+                pass
         else:
             record = {
                 k: "error" if k != 'type_id' else v for k, v in record.items()
@@ -148,7 +150,8 @@ def get_region_history(reg_id: int) -> list:
     pass
 
 
-def get_structure_market_analysis(region_id: int, struc_id: int):
+def get_structure_market_analysis(region_id: int, sys_id: int, struc_id: int):
+    sm = StructureMarkets()
     history = get_region_history(region_id)
     structure_view = include_empty_stock(get_struc_sell_orders(struc_id))
 

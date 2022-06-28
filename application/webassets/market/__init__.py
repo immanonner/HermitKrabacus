@@ -37,6 +37,7 @@ def structures(sys_name):
         return redirect(
             url_for('market_bp.upwellMarket',
                     struc_id=struc_names[sys_form.search.data],
+                    sys_id=q.solarSystemID,
                     region_id=q.regionID))
     return render_template('market.html',
                            title="Select Structure",
@@ -45,8 +46,8 @@ def structures(sys_name):
                            form=sys_form)
 
 
-@bp.route('/upwellMarket/<region_id>/<struc_id>', methods=['GET'])
+@bp.route('/upwellMarket/<region_id>/<sys_id>/<struc_id>', methods=['GET'])
 @login_required
-def upwellMarket(region_id, struc_id):
-    esi_market.get_structure_market_analysis(region_id, struc_id)
+def upwellMarket(region_id, sys_id, struc_id):
+    esi_market.get_structure_market_analysis(region_id, sys_id, struc_id)
     pass

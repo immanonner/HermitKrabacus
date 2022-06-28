@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 import csv
 import requests
 from pathlib import Path
-from .models import invTypes, invVolumes, SolarSystems, db
+from .models import InvTypes, InvVolumes, SolarSystems, db
 from application import f_cache
 import datetime as dt
 from config import EVE_NULL_REGIONS
@@ -92,12 +92,12 @@ def update_eve_sde(force=False):
         # pull data from latest fuzz repo / convert response to list of dicts / insert into db
         fuzz_data = get_fuzz_latest()
         if type(fuzz_data['invTypes'][0]) is dict:
-            invTypes.query.delete()
-            db.session.execute(invTypes.__table__.insert(),
+            InvTypes.query.delete()
+            db.session.execute(InvTypes.__table__.insert(),
                                fuzz_data['invTypes'])
         if type(fuzz_data['invVolumes'][0]) is dict:
-            invVolumes.query.delete()
-            db.session.execute(invVolumes.__table__.insert(),
+            InvVolumes.query.delete()
+            db.session.execute(InvVolumes.__table__.insert(),
                                fuzz_data['invVolumes'])
         # join tables and replace the values of the unpacked volumes with the packed versions if applicable
         db.session.execute("""UPDATE invTypes

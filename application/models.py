@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 from flask_login import UserMixin
-from sqlalchemy import ForeignKey, null
+from sqlalchemy import null
 from sqlalchemy.orm import relationship
 
 from . import db
@@ -47,18 +47,18 @@ class Users(db.Model, UserMixin):
         """ Little "helper" function to get formated data for esipy security"""
         return {
             'access_token':
-            self.access_token,
+                self.access_token,
             'refresh_token':
-            self.refresh_token,
+                self.refresh_token,
             'expires_in':
-            (self.access_token_expires - datetime.utcnow()).total_seconds()
+                (self.access_token_expires - datetime.utcnow()).total_seconds()
         }
 
     def update_token(self, token_response):
         """ helper function to update token data from SSO response """
         self.access_token = token_response['access_token']
         self.access_token_expires = datetime.fromtimestamp(
-            time.time() + token_response['expires_in'], )
+            time.time() + token_response['expires_in'],)
         if 'refresh_token' in token_response:
             self.refresh_token = token_response['refresh_token']
 
@@ -69,7 +69,7 @@ class Users(db.Model, UserMixin):
         self.refresh_token = None
 
 
-class invTypes(db.Model):
+class InvTypes(db.Model):
     __tablename__ = 'invTypes'
     typeID = db.Column(db.BigInteger, primary_key=True, autoincrement=False)
     groupID = db.Column(db.BigInteger, autoincrement=False)
@@ -87,18 +87,18 @@ class invTypes(db.Model):
     soundID = db.Column(db.BigInteger, nullable=True)
     graphicID = db.Column(db.BigInteger)
 
-    packed_volume = relationship('invVolumes',
-                                 backref="invTypes",
+    invVolumes = db.relationship('InvVolumes',
+                                 backref="invVolumes",
                                  uselist=False)
 
     def __repr__(self):
         return f'<Item {self.typeID}: {self.typeName}>'
 
 
-class invVolumes(db.Model):
+class InvVolumes(db.Model):
     __tablename__ = 'invVolumes'
     typeID = db.Column(db.BigInteger,
-                       ForeignKey(invTypes.typeID),
+                       db.ForeignKey(InvTypes.typeID),
                        primary_key=True,
                        autoincrement=False)
     packVolume = db.Column(db.Float)
@@ -117,3 +117,25 @@ class SolarSystems(db.Model):
     solarSystemName = db.Column(db.String(100))
     security = db.Column(db.Float)
     securityClass = db.Column(db.String(2))
+    structureMarkets = db.relationship('StructureMarkets',
+                                       back_populates="solarSystems")
+
+
+class StructureMarkets(db.Model):
+    __tablename__ = 'structureMarkets'
+    struc_id = db.Column(db.BigInteger, primary_key=True, autoincrement=False)
+    name = db.Column(db.String(100))
+    typeID = db.Column(
+        db.BigInteger,
+        db.ForeignKey(InvTypes.typeID),
+    )
+    solarSystemID = db.Column(
+        db.BigInteger,
+        db.ForeignKey(SolarSystems.solarSystemID),
+    )
+    sell_orders = db.Column(db.PickleType(), nullable=True)
+    history = db.Column(db.PickleType(), nullable=True)
+    invTypes = db.relationship('InvTypes',
+                               backref=db.backref("invTypes", uselist=False))
+    solarSystems = db.relationship('SolarSystems',
+                                   back_populates="structureMarkets")
