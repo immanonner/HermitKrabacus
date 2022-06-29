@@ -12,7 +12,7 @@ import csv
 import requests
 from pathlib import Path
 from .models import InvTypes, InvVolumes, SolarSystems, db
-from application import f_cache
+from application import f_cache, utils
 import datetime as dt
 from config import EVE_NULL_REGIONS
 
@@ -84,6 +84,7 @@ def get_fuzz_latest():
     return results
 
 
+@utils.timer_func
 def update_eve_sde(force=False):
     # check fuzz sde current as of date in cache
     sde_cao = f_cache.get('sde_cao')

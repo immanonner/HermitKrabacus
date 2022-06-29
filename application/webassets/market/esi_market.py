@@ -1,5 +1,5 @@
 # get each linked eve online user information such as wallet, characters, etc.
-from application import esiapp, esiclient
+from application import esiapp, esiclient, utils
 from application.models import InvTypes, SolarSystems, StructureMarkets, db
 from config import *
 from flask import flash
@@ -17,6 +17,7 @@ def get_types() -> list:
     return sorted([rw[0] for rw in db.session.query(InvTypes.typeID)])
 
 
+@utils.timer_func
 def get_sys_structures(sys_name: str) -> dict:
     struc_ids_req = esiapp.op['get_characters_character_id_search'](
         character_id=current_user.character_id,
@@ -44,6 +45,7 @@ def get_sys_structures(sys_name: str) -> dict:
     return results
 
 
+@utils.timer_func
 def get_struc_sell_orders(struc_id: int) -> list[dict]:
     op = esiapp.op['get_markets_structures_structure_id'](
         structure_id=struc_id, token=current_user.access_token)
@@ -142,17 +144,20 @@ def get_region_history(reg_id: int) -> list[dict]:
                 record['yest_price_avg'] = hist_records[-1]['average']
                 record['sale_chance'] = round(rec_df.shape[0] / date_delta.days,
                                               2)
+                history.append(record)
                 pass
         else:
             record = {
                 k: "error" if k != 'type_id' else v for k, v in record.items()
             }
-    pass
+            history.append(record)
+    return history
 
 
-def get_structure_market_analysis(region_id: int, sys_id: int, struc_id: int):
-    sm = StructureMarkets()
-    history = get_region_history(region_id)
-    structure_view = include_empty_stock(get_struc_sell_orders(struc_id))
+def get_structure_market_analysis(struc_name):
+    sm = StructureMarkets.query.filter(
+        StructureMarkets.name == struc_name).first()
+    history = get_region_history(sm.solarSystems.regionID)
+    structure_view = include_empty_stock(get_struc_sell_orders(sm.struc_id))
 
     pass

@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 
 from flask_login import UserMixin
-from sqlalchemy import null
+from sqlalchemy import null, ForeignKey
 from sqlalchemy.orm import relationship
 
 from . import db
@@ -98,7 +98,7 @@ class InvTypes(db.Model):
 class InvVolumes(db.Model):
     __tablename__ = 'invVolumes'
     typeID = db.Column(db.BigInteger,
-                       db.ForeignKey(InvTypes.typeID),
+                       ForeignKey(InvTypes.typeID),
                        primary_key=True,
                        autoincrement=False)
     packVolume = db.Column(db.Float)
@@ -127,15 +127,14 @@ class StructureMarkets(db.Model):
     name = db.Column(db.String(100))
     typeID = db.Column(
         db.BigInteger,
-        db.ForeignKey(InvTypes.typeID),
+        ForeignKey(InvTypes.typeID),
     )
     solarSystemID = db.Column(
         db.BigInteger,
-        db.ForeignKey(SolarSystems.solarSystemID),
+        ForeignKey(SolarSystems.solarSystemID),
     )
     sell_orders = db.Column(db.PickleType(), nullable=True)
     history = db.Column(db.PickleType(), nullable=True)
-    invTypes = db.relationship('InvTypes',
-                               backref=db.backref("invTypes", uselist=False))
+    invTypes = db.relationship('InvTypes', backref="invTypes", uselist=False)
     solarSystems = db.relationship('SolarSystems',
                                    back_populates="structureMarkets")

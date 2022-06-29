@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, url_for, redirect
+from flask import Blueprint, render_template, url_for, redirect, request
 from flask_login import current_user, login_required
-from application.models import SolarSystems
+from application.models import SolarSystems, StructureMarkets, db
 from . import esi_market, forms_market
 
 bp = Blueprint('market_bp',
@@ -25,7 +25,7 @@ def market():
                            form=sys_form)
 
 
-@bp.route('/structures/<sys_name>', methods=['GET', 'POST'])
+@bp.route('/structures/<sys_name>/', methods=['GET', 'POST'])
 @login_required
 def structures(sys_name):
     structures = esi_market.get_sys_structures(sys_name)
@@ -34,11 +34,14 @@ def structures(sys_name):
     if sys_form.validate_on_submit():
         ss = SolarSystems()
         q = ss.query.filter(SolarSystems.solarSystemName == sys_name).first()
-        return redirect(
-            url_for('market_bp.upwellMarket',
-                    struc_id=struc_names[sys_form.search.data],
-                    sys_id=q.solarSystemID,
-                    region_id=q.regionID))
+        sm = StructureMarkets()
+        sm.struc_id = struc_names[sys_form.search.data]
+        sm.name = sys_form.search.data
+        sm.typeID = structures[struc_names[sys_form.search.data]]['type_id']
+        sm.solarSystemID = q.solarSystemID
+        db.session.merge(sm)
+        db.session.commit()
+        return redirect(url_for('market_bp.upwellMarket', struc_name=sm.name))
     return render_template('market.html',
                            title="Select Structure",
                            description=f'{sys_name} Market Structure Selection',
@@ -46,8 +49,8 @@ def structures(sys_name):
                            form=sys_form)
 
 
-@bp.route('/upwellMarket/<region_id>/<sys_id>/<struc_id>', methods=['GET'])
+@bp.route('/upwellMarket/<struc_name>/', methods=['GET'])
 @login_required
-def upwellMarket(region_id, sys_id, struc_id):
-    esi_market.get_structure_market_analysis(region_id, sys_id, struc_id)
+def upwellMarket(struc_name):
+    esi_market.get_structure_market_analysis(struc_name)
     pass
