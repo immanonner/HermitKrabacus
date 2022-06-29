@@ -29,7 +29,9 @@ def market():
 @login_required
 def structures(sys_name):
     structures = esi_market.get_sys_structures(sys_name)
-    struc_names = {value['name']: key for key, value in structures.items()}
+    struc_names = {"No Structures Found": 1234567}
+    if structures.__len__() > 0:
+        struc_names = {value['name']: key for key, value in structures.items()}
     sys_form = forms_market.SearchForm()
     if sys_form.validate_on_submit():
         ss = SolarSystems()

@@ -27,21 +27,27 @@ def get_sys_structures(sys_name: str) -> dict:
     struc_id_resp = esiclient.request(struc_ids_req)
     if struc_id_resp.status == 200:
         struc_name_reqs = []
-        for id in struc_id_resp.data['structure']:
-            r = esiapp.op['get_universe_structures_structure_id'](
-                structure_id=id, token=current_user.access_token)
-            struc_name_reqs.append(r)
-        results = [
-            i for i in esiclient.multi_request(struc_name_reqs, threads=20)
-        ]
-        results = {
-            int(req._Request__p['path']['structure_id']): {
-                'name': resp.data['name'],
-                'type_id': int(resp.data['type_id'])
+        results = []
+        if len(struc_id_resp.data) > 0:
+            for id in struc_id_resp.data['structure']:
+                r = esiapp.op['get_universe_structures_structure_id'](
+                    structure_id=id, token=current_user.access_token)
+                struc_name_reqs.append(r)
+            results = [
+                i for i in esiclient.multi_request(struc_name_reqs, threads=20)
+            ]
+            results = {
+                int(req._Request__p['path']['structure_id']): {
+                    'name': resp.data['name'],
+                    'type_id': int(resp.data['type_id'])
+                }
+                for req, resp in results
+                if int(resp.data['type_id']) in EVE_MARKET_STRUCTURES
             }
-            for req, resp in results
-            if int(resp.data['type_id']) in EVE_MARKET_STRUCTURES
-        }
+        else:
+            flash(
+                f'No results found for {current_user.character_name} in SolarSystem: {sys_name}; ensure the toon has docking access...',
+                'danger')
     return results
 
 
@@ -78,6 +84,7 @@ def get_struc_sell_orders(struc_id: int) -> list[dict]:
     pass
 
 
+@utils.timer_func
 def include_empty_stock(sell_orders: list) -> list[dict]:
     orders = pd.DataFrame(sell_orders).set_index('type_id', drop=True)
     #select only sell orders and drop irrelevant columns
@@ -110,6 +117,7 @@ def include_empty_stock(sell_orders: list) -> list[dict]:
     ]
 
 
+@utils.timer_func
 def get_region_history(reg_id: int) -> list[dict]:
     all_relevant_types = get_types()
     operations = []
