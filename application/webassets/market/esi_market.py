@@ -27,7 +27,12 @@ def get_sys_structures(sys_name: str) -> dict:
     struc_id_resp = esiclient.request(struc_ids_req)
     if struc_id_resp.status == 200:
         struc_name_reqs = []
-        results = []
+        results = {
+            123456: {
+                'name': "No Structures found",
+                'type_id': 12345
+            }
+        }  #default result
         if len(struc_id_resp.data) > 0:
             for id in struc_id_resp.data['structure']:
                 r = esiapp.op['get_universe_structures_structure_id'](
@@ -126,7 +131,7 @@ def get_region_history(reg_id: int) -> list[dict]:
             type_id=tid, region_id=reg_id))
     results = esiclient.multi_request(operations,
                                       raw_body_only=True,
-                                      threads=100)
+                                      threads=20)
     history = []
     for rq, rsp in results:
         record = {
@@ -152,6 +157,7 @@ def get_region_history(reg_id: int) -> list[dict]:
                 record['yest_price_avg'] = hist_records[-1]['average']
                 record['sale_chance'] = round(rec_df.shape[0] / date_delta.days,
                                               2)
+                record['expires'] = rsp.header.get('expires')[0]
                 history.append(record)
                 pass
         else:
@@ -165,7 +171,7 @@ def get_region_history(reg_id: int) -> list[dict]:
 def get_structure_market_analysis(struc_name):
     sm = StructureMarkets.query.filter(
         StructureMarkets.name == struc_name).first()
-    history = get_region_history(sm.solarSystems.regionID)
-    structure_view = include_empty_stock(get_struc_sell_orders(sm.struc_id))
-
+    sm.history = get_region_history(sm.solarSystems.regionID)
+    sm.sell_orders = include_empty_stock(get_struc_sell_orders(sm.struc_id))
+    db.session.commit()
     pass
