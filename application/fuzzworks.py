@@ -6,7 +6,7 @@ from pathlib import Path
 from .models import InvTypes, InvVolumes, SolarSystems, db
 from application import f_cache, utils
 import datetime as dt
-from config import EVE_NULL_REGIONS
+from config import EVE_NULL_REGIONS, EVE_MARKET_HUBS
 
 
 def get_fuzz_latest():
@@ -59,7 +59,8 @@ def get_fuzz_latest():
                     "securityClass": rw.pop("securityClass")
                 }
                              for rw in resp_body
-                             if int(rw['regionID']) in EVE_NULL_REGIONS]
+                             if int(rw['regionID']) in EVE_NULL_REGIONS or
+                             int(rw["solarSystemID"]) in EVE_MARKET_HUBS.keys()]
         else:
             resp_body = resp.status_code
         return {name: resp_body}

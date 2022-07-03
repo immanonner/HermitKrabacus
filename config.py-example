@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 import datetime
 from os import environ, path
+
 from dotenv import load_dotenv
+
 # -----------------------------------------------------
 # !DEV!Application sever configurations
 # ------------------------------------------------------
@@ -18,10 +20,9 @@ EXPLAIN_TEMPLATE_LOADING = False
 # -----------------------------------------------------
 # ensure npm package "less" is installed globally "-g"
 LESS_BIN = environ.get("LESS_BIN")
-ASSETS_DEBUG = False 
+ASSETS_DEBUG = False
 ASSETS_AUTO_BUILD = True
 # -----------------------------------------------------
-
 
 # SQL Alchemy configs
 # -----------------------------------------------------
@@ -29,39 +30,93 @@ ASSETS_AUTO_BUILD = True
 SQLALCHEMY_DATABASE_URI = environ.get("SQLALCHEMY_DATABASE_URI")
 SQLALCHEMY_ECHO = False
 SQLALCHEMY_TRACK_MODIFICATIONS = False
-# ------------------------------------------------------
 
+# ------------------------------------------------------
 
 # Session settings for flask login
 # ------------------------------------------------------
 SECRET_KEY = environ.get("SECRET_KEY")
 PERMANENT_SESSION_LIFETIME = datetime.timedelta(days=30)
 
-
 # -----------------------------------------------------
 # ESI Configs
 # -----------------------------------------------------
+ESI_SECRET_KEY = environ.get("ESI_SECRET_KEY")
+ESI_CLIENT_ID = environ.get("ESI_CLIENT_ID")
 ESI_DATASOURCE = 'tranquility'  # Change it to 'singularity' to use the test server
 ESI_SWAGGER_JSON = 'https://esi.tech.ccp.is/latest/swagger.json?datasource=%s' % ESI_DATASOURCE
-ESI_CALLBACK = 'http://%s:%d/sso/callback' % (HOST, PORT) # the callback URI you gave CCP
+ESI_CALLBACK = 'http://%s:%d/sso/callback' % (HOST, PORT
+                                             )  # the callback URI you gave CCP
 ESI_USER_AGENT = 'Hermit Krabacus'
 ESI_SCOPES = [
-    'esi-wallet.read_character_wallet.v1',
-    'esi-search.search_structures.v1',
-    'esi-markets.read_character_orders.v1',
-    'esi-assets.read_assets.v1',
-    'esi-markets.structure_markets.v1',
-    'esi-universe.read_structures.v1'
+    'esi-wallet.read_character_wallet.v1', 'esi-search.search_structures.v1',
+    'esi-markets.read_character_orders.v1', 'esi-assets.read_assets.v1',
+    'esi-markets.structure_markets.v1', 'esi-universe.read_structures.v1'
 ]
 EVE_NULL_REGIONS = [
-    10000055, 10000007, 10000014, 10000051, 10000053, 10000012, 10000035, 10000060,
-    10000005, 10000039, 10000027, 10000046, 10000056, 10000058, 10000029, 10000011,
-    10000025, 10000031, 10000009, 10000034, 10000013, 10000040, 10000062, 10000021,
-    10000057, 10000059, 10000063, 10000066, 10000070, 10000047, 10000023, 10000050,
-    10000008, 10000018, 10000022, 10000041, 10000045, 10000061, 10000010, 10000003,
-    10000015, 10000006
+    10000055,
+    10000007,
+    10000014,
+    10000051,
+    10000053,
+    10000012,
+    10000035,
+    10000060,
+    10000005,
+    10000039,
+    10000027,
+    10000046,
+    10000056,
+    10000058,
+    10000029,
+    10000011,
+    10000025,
+    10000031,
+    10000009,
+    10000034,
+    10000013,
+    10000040,
+    10000062,
+    10000021,
+    10000057,
+    10000059,
+    10000063,
+    10000066,
+    10000070,
+    10000047,
+    10000023,
+    10000050,
+    10000008,
+    10000018,
+    10000022,
+    10000041,
+    10000045,
+    10000061,
+    10000010,
+    10000003,
+    10000015,
+    10000006,
 ]
 
 EVE_MARKET_STRUCTURES = {
     35833, 35834, 40340, 35826, 35827, 35836, 47512, 47513, 47514, 47515, 47516
+}
+
+EVE_MARKET_HUBS = {
+    #Amarr: 'Amarr VIII (Oris) - Emperor Family Academy'
+    30002187: [60008494, 'Amarr VIII (Oris) - Emperor Family Academy', 1932],
+    #Dodixie: 'Dodixie IX - Moon 20 - Federation Navy Assembly Plant'
+    30002659: [
+        60011866, 'Dodixie IX - Moon 20 - Federation Navy Assembly Plant', 3867
+    ],
+    # Hek: 'Hek VIII - Moon 12 - Boundless Creation Factory'
+    30002053: [
+        60005686, 'Hek VIII - Moon 12 - Boundless Creation Factory', 2497
+    ],
+    # Jita: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant'
+    30000142: [
+        60003760, 'Jita IV - Moon 4 - Caldari Navy Assembly Plant', 52678
+    ],
+    # Rens: 'Rens VI - Moon 8 - Brutor Tribe Treasury'
+    30002510: [60004588, 'Rens VI - Moon 8 - Brutor Tribe Treasury', 2498],
 }

@@ -1,5 +1,6 @@
 # get each linked eve online user information such as wallet, characters, etc.
-from application import esiapp, esiclient, utils
+from application import esiapp, esiclient, utils as apptils
+
 from application.models import InvTypes, SolarSystems, StructureMarkets, db
 from config import *
 from flask import flash
@@ -8,16 +9,25 @@ import json
 import pandas as pd
 
 
-def get_solarsystems() -> list:
-
-    return [rw[0] for rw in db.session.query(SolarSystems.solarSystemName)]
+def get_solarsystems(null_sec=True) -> list:
+    if not null_sec:
+        return [
+            rw[0]
+            for rw in db.session.query(SolarSystems.solarSystemName).filter(
+                SolarSystems.security >= 0)
+        ]
+    else:
+        return [
+            rw[0]
+            for rw in db.session.query(SolarSystems.solarSystemName).filter(
+                SolarSystems.security <= 0)
+        ]
 
 
 def get_types() -> list:
     return sorted([rw[0] for rw in db.session.query(InvTypes.typeID)])
 
 
-@utils.timer_func
 def get_sys_structures(sys_name: str) -> dict:
     struc_ids_req = esiapp.op['get_characters_character_id_search'](
         character_id=current_user.character_id,
@@ -56,14 +66,18 @@ def get_sys_structures(sys_name: str) -> dict:
     return results
 
 
-@utils.timer_func
+@apptils.timer_func
 def get_struc_sell_orders(struc_id: int) -> list[dict]:
     op = esiapp.op['get_markets_structures_structure_id'](
         structure_id=struc_id, token=current_user.access_token)
     struc_market_response = esiclient.request(op)
     if struc_market_response.status == 200:
         pages = struc_market_response.header['X-Pages'][0]
-        results = json.loads(struc_market_response.raw)
+        expires = struc_market_response.header['expires'][0]
+        results = [{
+            'expires': expires,
+            **rec
+        } for rec in json.loads(struc_market_response.raw)]
         if pages > 1:
             operations = []
             for page in range(2, pages + 1):
@@ -74,7 +88,11 @@ def get_struc_sell_orders(struc_id: int) -> list[dict]:
                         token=current_user.access_token))
             # multi request all pages of the market orders -> load them to results list(dict)
             [
-                results.append(json.loads(rsp.raw))
+                results.extend([{
+                    'expires': rsp.header['expires'][0],
+                    **rec
+                }
+                                for rec in json.loads(rsp.raw)])
                 for rq, rsp in esiclient.multi_request(operations,
                                                        raw_body_only=True)
                 if rsp.status == 200
@@ -89,8 +107,7 @@ def get_struc_sell_orders(struc_id: int) -> list[dict]:
     pass
 
 
-@utils.timer_func
-def include_empty_stock(sell_orders: list) -> list[dict]:
+def include_empty_stock(sell_orders: list[dict]) -> list[dict]:
     orders = pd.DataFrame(sell_orders).set_index('type_id', drop=True)
     #select only sell orders and drop irrelevant columns
     orders = orders[orders.is_buy_order == False].drop(columns=[
@@ -100,7 +117,8 @@ def include_empty_stock(sell_orders: list) -> list[dict]:
     # group orders by type_id and calc remaining volumes and minimum price of each type
     orders = orders.groupby('type_id').agg({
         'volume_remain': 'sum',
-        'price': 'min'
+        'price': 'min',
+        'expires': 'first'
     })
     all_types = pd.read_sql("SELECT typeID, typeName, volume FROM invTypes",
                             db.engine,
@@ -122,7 +140,7 @@ def include_empty_stock(sell_orders: list) -> list[dict]:
     ]
 
 
-@utils.timer_func
+@apptils.timer_func
 def get_region_history(reg_id: int) -> list[dict]:
     all_relevant_types = get_types()
     operations = []
@@ -135,7 +153,8 @@ def get_region_history(reg_id: int) -> list[dict]:
     history = []
     for rq, rsp in results:
         record = {
-            'type_id': rq.query[1][1],
+            'type_id': int(rq.query[1][1]),
+            'expires': rsp.header.get('expires')[0],
             'timespan': 0,
             'velocity': 0,
             'order_avg': 0,
@@ -157,9 +176,7 @@ def get_region_history(reg_id: int) -> list[dict]:
                 record['yest_price_avg'] = hist_records[-1]['average']
                 record['sale_chance'] = round(rec_df.shape[0] / date_delta.days,
                                               2)
-                record['expires'] = rsp.header.get('expires')[0]
                 history.append(record)
-                pass
         else:
             record = {
                 k: "error" if k != 'type_id' else v for k, v in record.items()
@@ -168,10 +185,73 @@ def get_region_history(reg_id: int) -> list[dict]:
     return history
 
 
-def get_structure_market_analysis(struc_name):
+@apptils.timer_func
+def get_k_space_orders(hub: SolarSystems) -> list[dict]:
+    sm = StructureMarkets()
+    sm.struc_id = EVE_MARKET_HUBS.get(hub.solarSystemID)[0]
+    sm.name = EVE_MARKET_HUBS.get(hub.solarSystemID)[1]
+    sm.typeID = EVE_MARKET_HUBS.get(hub.solarSystemID)[2]
+    sm.solarSystemID = hub.solarSystemID
+    db.session.merge(sm)
+    db.session.commit()
+
+    rsp = esiclient.request(
+        esiapp.op['get_markets_region_id_orders'](region_id=hub.regionID))
+    if rsp.status == 200:
+        pages = rsp.header['X-Pages'][0]
+        expires = rsp.header['expires'][0]
+        results = [{'expires': expires, **rec} for rec in json.loads(rsp.raw)]
+        if pages > 1:
+            operations = []
+            for page in range(2, pages + 1):
+                operations.append(esiapp.op['get_markets_region_id_orders'](
+                    region_id=hub.regionID, page=page))
+        [
+            results.extend([{
+                'expires': rs.header['expires'][0],
+                **rec
+            }
+                            for rec in json.loads(rs.raw)])
+            for rq, rs in esiclient.multi_request(operations,
+                                                  raw_body_only=True)
+            if rs.status == 200
+        ]
+        # clean the data in results
+        return results
+    else:
+        flash(
+            f"response status = <{rsp.status}> station sell order retrival failed",
+            "danger")
+    # todo error handle this
+    pass
+
+
+@apptils.timer_func
+def get_structure_market_analysis(struc_name, import_hub) -> pd.DataFrame:
     sm = StructureMarkets.query.filter(
         StructureMarkets.name == struc_name).first()
-    sm.history = get_region_history(sm.solarSystems.regionID)
-    sm.sell_orders = include_empty_stock(get_struc_sell_orders(sm.struc_id))
-    db.session.commit()
-    pass
+    if sm.is_expired(sm.history_expiry):
+        sm.update_history_records(get_region_history(sm.solarSystems.regionID))
+        db.session.commit()
+
+    if sm.is_expired(sm.sell_orders_expiry):
+        orders = include_empty_stock(get_struc_sell_orders(sm.struc_id))
+        sm.update_sell_orders(orders)
+        db.session.commit()
+
+    ih = SolarSystems.query.filter(
+        SolarSystems.solarSystemName == import_hub).first()
+
+    #todo ensure structure markets for hubs only return one or the 'right' station
+    if len(ih.structureMarkets) == 0 or ih.structureMarkets[0].is_expired(
+            ih.structureMarkets[0].sell_orders_expiry):
+        import_hub_orders = include_empty_stock(get_k_space_orders(ih))
+        ih.structureMarkets[0].update_sell_orders(import_hub_orders)
+        db.session.commit()
+
+    h = pd.DataFrame(sm.history)
+    h.drop(columns=['expires'], inplace=True)
+    so = pd.DataFrame(sm.sell_orders)
+    so.drop(columns=['expires'], inplace=True)
+    v = pd.merge(so, h, on='type_id', how='left')
+    return v

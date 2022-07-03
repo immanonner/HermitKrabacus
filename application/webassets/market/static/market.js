@@ -3,7 +3,7 @@ function autocompleteMatch(input) {
         return [];
     }
     var reg = new RegExp(input.toUpperCase())
-    var names = ss
+    var names = ns
     return names.filter(function (term) {
         if (term.match(reg)) {
             return term;
@@ -26,8 +26,8 @@ function build_selections(terms) {
 function showResults(val) {
     let res = document.getElementById("result");
     res.innerHTML = '';
-    if (ss.length <= 5) {
-        res.appendChild(build_selections(ss))
+    if (ns.length <= 5) {
+        res.appendChild(build_selections(ns))
     } else {
         let terms = autocompleteMatch(val)
         let options = build_selections(terms)

@@ -2,15 +2,19 @@
 
 {% block content %}
 <script type="text/javascript">
-    ss = {{ searchdata | tojson }}
+    ns = {{ searchdata | tojson }}
+
 </script>
 <div class="container">
     <h1>{{title}}</h1>
     <p>{{description}}</p>
     <form method="POST" action="{{url_for(request.endpoint, **request.view_args)}}" autocomplete="off">
         {{ form.hidden_tag() }}
-        {{form.search(placeholder="Solar System Search", onkeydown="showResults(this.value)",
-        onclick="showResults(this.value)") }}
+        {{form.search(placeholder="Solar System Search",
+        onkeydown="showResults(this.value)",onclick="showResults(this.value)") }}
+        {% if request.endpoint == 'market_bp.structures' %}
+        {{form.select()}}
+        {% endif %}
         <div id="result"></div>
         <p>{{form.submit(label="new search")}}</p>
     </form>

@@ -3,7 +3,6 @@ from datetime import datetime
 
 from flask_login import UserMixin
 from sqlalchemy import null, ForeignKey
-from sqlalchemy.orm import relationship
 
 from . import db
 
@@ -120,6 +119,9 @@ class SolarSystems(db.Model):
     structureMarkets = db.relationship('StructureMarkets',
                                        back_populates="solarSystems")
 
+    def __repr__(self):
+        return f'<{self.solarSystemName} ID: {self.solarSystemID}>'
+
 
 class StructureMarkets(db.Model):
     __tablename__ = 'structureMarkets'
@@ -134,7 +136,45 @@ class StructureMarkets(db.Model):
         ForeignKey(SolarSystems.solarSystemID),
     )
     sell_orders = db.Column(db.PickleType(), nullable=True)
+    sell_orders_expiry = db.Column(db.DateTime(), nullable=True)
     history = db.Column(db.PickleType(), nullable=True)
+    history_expiry = db.Column(db.DateTime(), nullable=True)
+
     invTypes = db.relationship('InvTypes', backref="invTypes", uselist=False)
     solarSystems = db.relationship('SolarSystems',
                                    back_populates="structureMarkets")
+
+    def __repr__(self) -> str:
+        return f'<{self.name} Market Data Expires: {self.expiry}>'
+
+    def is_expired(self, cache_date) -> bool:
+        if cache_date is None:
+            return True
+        epoch = datetime(1970, 1, 1)
+        # this date is ALWAYS in UTC (RFC 7231)
+        expires_in = (cache_date - epoch).total_seconds()
+        now = (datetime.utcnow() - epoch).total_seconds()
+        return int(expires_in) - int(now) <= 0
+
+    def update_history_records(self, records: list[dict]):
+        self.history = records
+        self.history_expiry = self.__pull_earliest_exp_date(records)
+
+    def update_sell_orders(self, orders: list[dict]):
+        self.sell_orders = orders
+        self.sell_orders_expiry = self.__pull_earliest_exp_date(orders)
+
+    def __pull_earliest_exp_date(self, records) -> datetime:
+        uniq_dates = {
+            rec['expires'] for rec in records if rec.get('expires', None)
+        }
+        if len(uniq_dates) == 1:
+            return datetime.strptime(
+                list(uniq_dates)[0], '%a, %d %b %Y %H:%M:%S %Z')
+        else:
+            earliest = datetime.datetime(9999, 12, 31, 23, 59, 999999)
+            for d in uniq_dates:
+                parsed_date = datetime.strptime(d, '%a, %d %b %Y %H:%M:%S %Z')
+                if parsed_date < earliest:
+                    earliest = parsed_date
+            return earliest
