@@ -43,12 +43,6 @@ def init_app():
     assets.init_app(app)
 
     with app.app_context():
-        import application.auth
-        # Include our Routes to Register all Blueprints
-        import application.routes
-        # bundle (js -> jsmin; less->cssmin)
-        if app.config['FLASK_ENV'] == 'development':
-            compile_static_assets(assets, default_bp_name="base_bp")
         if database_exists(db.engine.url) is False:
             db.create_all()
         # else:  # creates the db if it doesnt exist
@@ -56,6 +50,12 @@ def init_app():
         #     db_upgrade()
         # update eve item data
         from application.fuzzworks import update_eve_sde
-        update_eve_sde(force=False)
+        update_eve_sde(force=True)
+        import application.auth
+        # Include our Routes to Register all Blueprints
+        # bundle (js -> jsmin; less->cssmin)
+        import application.routes
+        if app.config['FLASK_ENV'] == 'development':
+            compile_static_assets(assets, default_bp_name="base_bp")
 
         return app
