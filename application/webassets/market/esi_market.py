@@ -250,8 +250,38 @@ def get_structure_market_analysis(struc_name, import_hub) -> pd.DataFrame:
         db.session.commit()
 
     h = pd.DataFrame(sm.history)
-    h.drop(columns=['expires'], inplace=True)
+    h.drop(columns=['expires', 'order_avg'], inplace=True)
+    ih_o = pd.DataFrame(ih.structureMarkets[0].sell_orders)
+    ih_o.drop(columns=[
+        'expires',
+        'stock_remaining',
+    ], inplace=True)
+    ih_o.rename(columns={
+        'price': 'hub_min_price',
+        'volume': 'pack_vol'
+    },
+                inplace=True)
     so = pd.DataFrame(sm.sell_orders)
-    so.drop(columns=['expires'], inplace=True)
-    v = pd.merge(so, h, on='type_id', how='left')
+    so.drop(columns=['expires', 'price', 'typeName', 'volume'], inplace=True)
+    v = pd.merge(ih_o, h, on='type_id', how='left')
+    v = pd.merge(v, so, on='type_id', how='left')
+    v['DSO'] = round(v.stock_remaining / v.velocity, 2)
+    v['BE'] = round((v.hub_min_price * .06) + (500 * v.pack_vol), 2)
+    v['PPI'] = round(v.yest_price_avg - v.BE, 2)
+    v['RR'] = round(v.PPI / v.BE, 2)
+    v['PPD'] = round(v.PPI * v.velocity, 2)
+    v.fillna(value={
+        "timespan": 0,
+        "velocity": 0.0,
+        "yest_price_avg": 0.0,
+        "sale_chance": 0.0,
+        'stock_remaining': 0.0,
+        'DSO': 0.0,
+        'BE': 0.0,
+        'PPI': 0.0,
+        'RR': 0.0,
+        'PPD': 0.0
+    },
+             inplace=True)
+    v.sort_values(by=['PPD'], ascending=False, inplace=True)
     return v

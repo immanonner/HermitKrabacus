@@ -1,6 +1,9 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<script type="text/javascript">
+    var mv = {{ gridData | safe }}
+</script>
 <div class="container">
     <h1>{{title}}</h1>
     <p>{{description}}</p>

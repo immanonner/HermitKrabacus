@@ -63,7 +63,8 @@ def upwellMarket():
     market_view = esi_market.get_structure_market_analysis(
         struc_name, import_hub)
 
-    return render_template('upwell.html',
-                           title=f'{struc_name}\n Market Analysis',
-                           description=f'Examining the Route from {import_hub}',
-                           gridData=market_view.to_json())
+    return render_template(
+        'upwell.html',
+        title=f'{struc_name}\n Market Analysis',
+        description=f'Examining the Route from {import_hub}',
+        gridData=market_view.head().to_json(orient='records'))
