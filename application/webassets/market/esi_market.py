@@ -154,7 +154,7 @@ def get_region_history(reg_id: int) -> list[dict]:
     for rq, rsp in results:
         record = {
             'type_id': int(rq.query[1][1]),
-            'expires': rsp.header.get('expires')[0],
+            'expires': datetime.datetime.utcnow() + datetime.timedelta(days=1),
             'timespan': 0,
             'velocity': 0,
             'order_avg': 0,
@@ -162,6 +162,7 @@ def get_region_history(reg_id: int) -> list[dict]:
             'sale_chance': 0.0
         }
         if rsp.status == 200:
+            record.update({'expires': rsp.header.get('expires')[0]})
             if len(rsp.raw) <= 2:
                 continue
             else:
@@ -265,23 +266,24 @@ def get_structure_market_analysis(struc_name, import_hub) -> pd.DataFrame:
     so.drop(columns=['expires', 'price', 'typeName', 'volume'], inplace=True)
     v = pd.merge(ih_o, h, on='type_id', how='left')
     v = pd.merge(v, so, on='type_id', how='left')
-    v['DSO'] = round(v.stock_remaining / v.velocity, 2)
-    v['BE'] = round((v.hub_min_price * .06) + (500 * v.pack_vol), 2)
-    v['PPI'] = round(v.yest_price_avg - v.BE, 2)
-    v['RR'] = round(v.PPI / v.BE, 2)
-    v['PPD'] = round(v.PPI * v.velocity, 2)
+    v['dso'] = round(v.stock_remaining / v.velocity, 2)
+    v['be'] = round((v.hub_min_price * .06) + (500 * v.pack_vol), 2)
+    v['ppi'] = round(v.yest_price_avg - v.be, 2)
+    v['rr'] = round(v.ppi / v.be, 2)
+    v['ppd'] = round(v.ppi * v.velocity, 2)
     v.fillna(value={
         "timespan": 0,
         "velocity": 0.0,
         "yest_price_avg": 0.0,
         "sale_chance": 0.0,
         'stock_remaining': 0.0,
-        'DSO': 0.0,
-        'BE': 0.0,
-        'PPI': 0.0,
-        'RR': 0.0,
-        'PPD': 0.0
+        'dso': 0.0,
+        'be': 0.0,
+        'ppi': 0.0,
+        'rr': 0.0,
+        'ppd': 0.0
     },
              inplace=True)
-    v.sort_values(by=['PPD'], ascending=False, inplace=True)
+    v.sort_values(by=['ppi'], ascending=False, inplace=True)
+    v.drop(columns=['type_id'], inplace=True)
     return v

@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+<link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
 <script type="text/javascript">
     var mv = {{ gridData | safe }}
 </script>
@@ -8,4 +9,7 @@
     <h1>{{title}}</h1>
     <p>{{description}}</p>
 </div>
+<div id="wrapper"></div>
+<script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+
 {% endblock %}
