@@ -10,7 +10,7 @@ from flask import flash
 from flask_login import current_user
 
 
-def gen_auth_esiclient(user: Users) -> EsiClient:
+def gen_auth_esiclient(user):
     """ we use a toon's information to __init__ a unique esiclient to make requests. 
         ie If I want to have all three of my characters
         wallet information displayed; I need 3 esiclients.

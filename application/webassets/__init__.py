@@ -3,7 +3,7 @@ import os
 from flask import Blueprint
 
 
-def all_blueprints() -> list[Blueprint]:
+def all_blueprints():
     """Import all blueprints for application."""
     not_registered_bps = []
     for path in os.scandir(os.path.dirname(__file__)):

@@ -9,7 +9,7 @@ import json
 import pandas as pd
 
 
-def get_solarsystems(null_sec=True) -> list:
+def get_solarsystems(null_sec=True):
     if not null_sec:
         return [
             rw[0]
@@ -24,11 +24,11 @@ def get_solarsystems(null_sec=True) -> list:
         ]
 
 
-def get_types() -> list:
+def get_types():
     return sorted([rw[0] for rw in db.session.query(InvTypes.typeID)])
 
 
-def get_sys_structures(sys_name: str) -> dict:
+def get_sys_structures(sys_name):
     struc_ids_req = esiapp.op['get_characters_character_id_search'](
         character_id=current_user.character_id,
         categories=['structure'],
@@ -67,7 +67,7 @@ def get_sys_structures(sys_name: str) -> dict:
 
 
 @apptils.timer_func
-def get_struc_sell_orders(struc_id: int) -> list[dict]:
+def get_struc_sell_orders(struc_id):
     op = esiapp.op['get_markets_structures_structure_id'](
         structure_id=struc_id, token=current_user.access_token)
     struc_market_response = esiclient.request(op)
@@ -107,7 +107,7 @@ def get_struc_sell_orders(struc_id: int) -> list[dict]:
     pass
 
 
-def include_empty_stock(sell_orders: list[dict]) -> list[dict]:
+def include_empty_stock(sell_orders):
     orders = pd.DataFrame(sell_orders).set_index('type_id', drop=True)
     #select only sell orders and drop irrelevant columns
     orders = orders[orders.is_buy_order == False].drop(columns=[
@@ -141,7 +141,7 @@ def include_empty_stock(sell_orders: list[dict]) -> list[dict]:
 
 
 @apptils.timer_func
-def get_region_history(reg_id: int) -> list[dict]:
+def get_region_history(reg_id):
     all_relevant_types = get_types()
     operations = []
     for tid in all_relevant_types:
@@ -187,7 +187,7 @@ def get_region_history(reg_id: int) -> list[dict]:
 
 
 @apptils.timer_func
-def get_k_space_orders(hub: SolarSystems) -> list[dict]:
+def get_k_space_orders(hub):
     sm = StructureMarkets()
     sm.struc_id = EVE_MARKET_HUBS.get(hub.solarSystemID)[0]
     sm.name = EVE_MARKET_HUBS.get(hub.solarSystemID)[1]
@@ -228,7 +228,7 @@ def get_k_space_orders(hub: SolarSystems) -> list[dict]:
 
 
 @apptils.timer_func
-def get_structure_market_analysis(struc_name, import_hub) -> pd.DataFrame:
+def get_structure_market_analysis(struc_name, import_hub):
     sm = StructureMarkets.query.filter(
         StructureMarkets.name == struc_name).first()
     if sm.is_expired(sm.history_expiry):

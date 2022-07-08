@@ -5,7 +5,7 @@ from flask import current_app as app
 from flask_assets import Bundle, Environment
 
 
-def compile_static_assets(assets: Environment, default_bp_name: str = None):
+def compile_static_assets(assets, default_bp_name=None):
     """ Configure and build static asset (js/css) bundles.
         bundle paths are relative the assets environment directory
         that env directory is relative to your flask app static directory <default>, or the static directory of a Flask blueprint.
