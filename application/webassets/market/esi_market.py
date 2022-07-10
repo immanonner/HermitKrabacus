@@ -35,6 +35,7 @@ def get_sys_structures(sys_name):
         search=sys_name,
         token=esiclient.security.access_token)
     struc_id_resp = esiclient.request(struc_ids_req)
+    results = {}
     if struc_id_resp.status == 200:
         struc_name_reqs = []
         results = {
@@ -63,6 +64,10 @@ def get_sys_structures(sys_name):
             flash(
                 f'No results found for {current_user.character_name} in SolarSystem: {sys_name}; ensure the toon has docking access...',
                 'danger')
+    else:
+        flash(
+            f'response error: {struc_id_resp.status} No results found for {current_user.character_name} in SolarSystem: {sys_name}; ??ESI SEARCH DOWN??',
+            'danger')
     return results
 
 
