@@ -46,18 +46,18 @@ class Users(db.Model, UserMixin):
         """ Little "helper" function to get formated data for esipy security"""
         return {
             'access_token':
-            self.access_token,
+                self.access_token,
             'refresh_token':
-            self.refresh_token,
+                self.refresh_token,
             'expires_in':
-            (self.access_token_expires - datetime.utcnow()).total_seconds()
+                (self.access_token_expires - datetime.utcnow()).total_seconds()
         }
 
     def update_token(self, token_response):
         """ helper function to update token data from SSO response """
         self.access_token = token_response['access_token']
         self.access_token_expires = datetime.fromtimestamp(
-            time.time() + token_response['expires_in'], )
+            time.time() + token_response['expires_in'],)
         if 'refresh_token' in token_response:
             self.refresh_token = token_response['refresh_token']
 
@@ -166,14 +166,13 @@ class StructureMarkets(db.Model):
 
     def __pull_earliest_exp_date(self, records) -> datetime:
         uniq_dates = {
-            rec['expires']
-            for rec in records if rec.get('expires', None)
+            rec['expires'] for rec in records if rec.get('expires', None)
         }
         if len(uniq_dates) == 1:
             return datetime.strptime(
                 list(uniq_dates)[0], '%a, %d %b %Y %H:%M:%S %Z')
         else:
-            earliest = datetime(9999, 12, 31, 23, 59, 999999)
+            earliest = datetime(9999, 12, 31, 23, 59, 59)
             for d in uniq_dates:
                 parsed_date = datetime.strptime(d, '%a, %d %b %Y %H:%M:%S %Z')
                 if parsed_date < earliest:

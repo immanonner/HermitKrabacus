@@ -158,13 +158,22 @@ def get_region_history(reg_id):
     history = []
     for rq, rsp in results:
         record = {
-            'type_id': int(rq.query[1][1]),
-            'expires': datetime.datetime.utcnow() + datetime.timedelta(days=1),
-            'timespan': 0,
-            'velocity': 0,
-            'order_avg': 0,
-            'yest_price_avg': 0,
-            'sale_chance': 0.0
+            'type_id':
+                int(rq.query[1][1]),
+            'expires':
+                (datetime.datetime.utcnow() +
+                 datetime.timedelta(days=1)).strftime('%a, %d %b %Y %H:%M:%S') +
+                ' GMT',
+            'timespan':
+                0,
+            'velocity':
+                0,
+            'order_avg':
+                0,
+            'yest_price_avg':
+                0,
+            'sale_chance':
+                0.0
         }
         if rsp.status == 200:
             record.update({'expires': rsp.header.get('expires')[0]})
@@ -183,11 +192,7 @@ def get_region_history(reg_id):
                 record['sale_chance'] = round(rec_df.shape[0] / date_delta.days,
                                               2)
                 history.append(record)
-        else:
-            record = {
-                k: "error" if k != 'type_id' else v for k, v in record.items()
-            }
-            history.append(record)
+
     return history
 
 
