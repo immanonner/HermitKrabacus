@@ -24,7 +24,12 @@ def get_solarsystems(null_sec=True):
         ]
 
 
-def get_types():
+def get_types(region_id):
+    type_req = esiapp.op['get_markets_region_id_types'](region_id=region_id)
+    type_rsp = esiclient.request(type_req)
+    if type_rsp.status == 200:
+        pages = type_rsp.header['X-Pages'][0]
+        pass
     return sorted([rw[0] for rw in db.session.query(InvTypes.typeID)])
 
 
@@ -147,52 +152,15 @@ def include_empty_stock(sell_orders):
 
 @apptils.timer_func
 def get_region_history(reg_id):
-    all_relevant_types = get_types()
-    operations = []
-    for tid in all_relevant_types:
-        operations.append(esiapp.op['get_markets_region_id_history'](
-            type_id=tid, region_id=reg_id))
-    results = esiclient.multi_request(operations,
-                                      raw_body_only=True,
-                                      threads=20)
-    history = []
-    for rq, rsp in results:
-        record = {
-            'type_id':
-                int(rq.query[1][1]),
-            'expires':
-                (datetime.datetime.utcnow() +
-                 datetime.timedelta(days=1)).strftime('%a, %d %b %Y %H:%M:%S') +
-                ' GMT',
-            'timespan':
-                0,
-            'velocity':
-                0,
-            'order_avg':
-                0,
-            'yest_price_avg':
-                0,
-            'sale_chance':
-                0.0
-        }
-        if rsp.status == 200:
-            record.update({'expires': rsp.header.get('expires')[0]})
-            if len(rsp.raw) <= 2:
-                continue
-            else:
-                hist_records = json.loads(rsp.raw)
-                date_delta = datetime.date.today(
-                ) - datetime.date.fromisoformat(hist_records[0]['date'])
-                record['timespan'] = date_delta.days
-                rec_df = pd.DataFrame(hist_records)
-                record['velocity'] = round(
-                    rec_df.volume.sum() / date_delta.days, 2)
-                record['order_avg'] = round(rec_df.order_count.mean(), 2)
-                record['yest_price_avg'] = hist_records[-1]['average']
-                record['sale_chance'] = round(rec_df.shape[0] / date_delta.days,
-                                              2)
-                history.append(record)
-
+    history = pd.read_sql(
+        f"""SELECT invTypes.typeID, HIST.aggVol, HIST.listDate, 
+                   HIST.records, HIST.lastPriceAvg, HIST.velocity, 
+                   HIST.saleChance 
+                   FROM invTypes 
+                   LEFT JOIN 
+                   (SELECT * FROM eveRefMarketHistory WHERE regionID == {reg_id}) AS HIST 
+                   on invTypes.typeID = HIST.typeID""",
+        db.session.bind).to_dict('records')
     return history
 
 
@@ -261,7 +229,7 @@ def get_structure_market_analysis(struc_name, import_hub):
         db.session.commit()
 
     h = pd.DataFrame(sm.history)
-    h.drop(columns=['expires', 'order_avg'], inplace=True)
+    h.drop(columns=['listDate'], inplace=True)
     ih_o = pd.DataFrame(ih.structureMarkets[0].sell_orders)
     ih_o.drop(columns=[
         'expires',
@@ -274,18 +242,19 @@ def get_structure_market_analysis(struc_name, import_hub):
                 inplace=True)
     so = pd.DataFrame(sm.sell_orders)
     so.drop(columns=['expires', 'price', 'typeName', 'volume'], inplace=True)
-    v = pd.merge(ih_o, h, on='type_id', how='left')
+    v = pd.merge(ih_o, h, left_on='type_id', right_on='typeID', how='left')
     v = pd.merge(v, so, on='type_id', how='left')
     v['dso'] = round(v.stock_remaining / v.velocity, 2)
     v['be'] = round((v.hub_min_price * .06) + (500 * v.pack_vol), 2)
-    v['ppi'] = round(v.yest_price_avg - v.be, 2)
+    v['ppi'] = round(v.lastPriceAvg - v.be, 2)
     v['rr'] = round(v.ppi / v.be, 2)
     v['ppd'] = round(v.ppi * v.velocity, 2)
     v.fillna(value={
-        "timespan": 0,
+        'aggVol': 0.0,
+        "records": 0.0,
+        "lastPriceAvg": 0.0,
         "velocity": 0.0,
-        "yest_price_avg": 0.0,
-        "sale_chance": 0.0,
+        "saleChance": 0.0,
         'stock_remaining': 0.0,
         'dso': 0.0,
         'be': 0.0,
@@ -295,5 +264,5 @@ def get_structure_market_analysis(struc_name, import_hub):
     },
              inplace=True)
     v.sort_values(by=['ppi'], ascending=False, inplace=True)
-    v.drop(columns=['type_id'], inplace=True)
+    v.drop(columns=['type_id', 'typeID'], inplace=True)
     return v

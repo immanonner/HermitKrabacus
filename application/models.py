@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from flask_login import UserMixin
 from sqlalchemy import null, ForeignKey
@@ -158,7 +158,7 @@ class StructureMarkets(db.Model):
 
     def update_history_records(self, records: list[dict]):
         self.history = records
-        self.history_expiry = self.__pull_earliest_exp_date(records)
+        self.history_expiry = datetime.today() + timedelta(days=1)
 
     def update_sell_orders(self, orders: list[dict]):
         self.sell_orders = orders
@@ -178,3 +178,16 @@ class StructureMarkets(db.Model):
                 if parsed_date < earliest:
                     earliest = parsed_date
             return earliest
+
+
+class EveRefMarketHistory(db.Model):
+    __tablename__ = 'eveRefMarketHistory'
+    priKey = db.Column(db.BigInteger, primary_key=True)
+    regionID = db.Column(db.BigInteger)
+    typeID = db.Column(db.BigInteger)
+    listDate = db.Column(db.Date)
+    aggVol = db.Column(db.BigInteger)
+    records = db.Column(db.BigInteger)
+    lastPriceAvg = db.Column(db.Float)
+    velocity = db.Column(db.Float)
+    saleChance = db.Column(db.Float)

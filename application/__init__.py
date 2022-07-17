@@ -46,6 +46,7 @@ def init_app():
         import application.routes
         import application.auth
         from application.fuzzworks import update_eve_sde
+        from application.eveRef import update_market_history
         compile_static_assets(assets, default_bp_name="base_bp")
         db.create_all()
         # else:  # creates the db if it doesnt exist
@@ -53,7 +54,8 @@ def init_app():
         #     db_upgrade()
         # update eve item data
 
-        update_eve_sde(force=True)
+        update_eve_sde(force=False)
+        update_market_history(force=False)
 
         # Include our Routes to Register all Blueprints
         # bundle (js -> jsmin; less->cssmin)
