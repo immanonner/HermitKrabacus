@@ -182,12 +182,7 @@ class StructureMarkets(db.Model):
 
 class EveRefMarketHistory(db.Model):
     __tablename__ = 'eveRefMarketHistory'
-    priKey = db.Column(db.BigInteger, primary_key=True)
-    regionID = db.Column(db.BigInteger)
-    typeID = db.Column(db.BigInteger)
-    listDate = db.Column(db.Date)
-    aggVol = db.Column(db.BigInteger)
-    records = db.Column(db.BigInteger)
-    lastPriceAvg = db.Column(db.Float)
-    velocity = db.Column(db.Float)
-    saleChance = db.Column(db.Float)
+    priKey = db.Column(db.Integer, primary_key=True)
+    everefbody = db.Column(db.PickleType())
+    analysis = db.Column(db.PickleType())
+    cao = db.Column(db.DateTime())

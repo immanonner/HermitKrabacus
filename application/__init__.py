@@ -55,7 +55,7 @@ def init_app():
         # update eve item data
 
         update_eve_sde(force=False)
-        update_market_history(force=False)
+        update_market_history(force=True)
 
         # Include our Routes to Register all Blueprints
         # bundle (js -> jsmin; less->cssmin)
