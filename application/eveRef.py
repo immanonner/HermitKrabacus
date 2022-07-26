@@ -46,7 +46,7 @@ def rebase_everef():
        dumps to local parquet file
     """
     start_date = (dt.date.today() - dt.timedelta(days=365))
-    end_date = dt.date.today()
+    end_date = dt.date.today() - dt.timedelta(days=2)
     rdf = make_everef_requests(start_date, end_date)
     rdf = rdf.set_index('date', drop=False, sorted=True)
     rdf = rdf.repartition(npartitions=1)
