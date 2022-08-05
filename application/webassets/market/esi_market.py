@@ -1,5 +1,5 @@
 # get each linked eve online user information such as wallet, characters, etc.
-from application import esiapp, esiclient, utils as apptils
+from application import esiapp, esiclient, utils as apptils, f_cache
 
 from application.models import InvTypes, SolarSystems, StructureMarkets, db
 from config import *
@@ -152,16 +152,8 @@ def include_empty_stock(sell_orders):
 
 @apptils.timer_func
 def get_region_history(reg_id):
-    history = pd.read_sql(
-        f"""SELECT invTypes.typeID, HIST.aggVol, HIST.listDate, 
-                   HIST.records, HIST.lastPriceAvg, HIST.velocity, 
-                   HIST.saleChance 
-                   FROM invTypes 
-                   LEFT JOIN 
-                   (SELECT * FROM eveRefMarketHistory WHERE regionID == {reg_id}) AS HIST 
-                   on invTypes.typeID = HIST.typeID""",
-        db.session.bind).to_dict('records')
-    return history
+    hist = f_cache.get('adf').loc[reg_id]
+    return hist
 
 
 @apptils.timer_func
@@ -264,5 +256,5 @@ def get_structure_market_analysis(struc_name, import_hub):
     },
              inplace=True)
     v.sort_values(by=['ppi'], ascending=False, inplace=True)
-    v.drop(columns=['type_id', 'typeID'], inplace=True)
+    v.drop(columns=['type_id'], inplace=True)
     return v

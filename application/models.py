@@ -180,9 +180,9 @@ class StructureMarkets(db.Model):
             return earliest
 
 
-class EveRefMarketHistory(db.Model):
-    __tablename__ = 'eveRefMarketHistory'
-    priKey = db.Column(db.Integer, primary_key=True)
-    everefbody = db.Column(db.PickleType())
-    analysis = db.Column(db.PickleType())
-    cao = db.Column(db.DateTime())
+# class EveRefMarketHistory(db.Model):
+#     __tablename__ = 'eveRefMarketHistory'
+#     priKey = db.Column(db.Integer, primary_key=True)
+#     everefbody = db.Column(db.PickleType())
+#     analysis = db.Column(db.PickleType())
+#     cao = db.Column(db.DateTime())
