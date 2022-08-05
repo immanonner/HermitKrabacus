@@ -122,6 +122,20 @@ class SolarSystems(db.Model):
     def __repr__(self):
         return f'<{self.solarSystemName} ID: {self.solarSystemID}>'
 
+    def get_solarsystems(null_sec=True):
+        if not null_sec:
+            return [
+                rw[0]
+                for rw in db.session.query(SolarSystems.solarSystemName).filter(
+                    SolarSystems.security >= 0)
+            ]
+        else:
+            return [
+                rw[0]
+                for rw in db.session.query(SolarSystems.solarSystemName).filter(
+                    SolarSystems.security <= 0)
+            ]
+
 
 class StructureMarkets(db.Model):
     __tablename__ = 'structureMarkets'
@@ -178,11 +192,3 @@ class StructureMarkets(db.Model):
                 if parsed_date < earliest:
                     earliest = parsed_date
             return earliest
-
-
-# class EveRefMarketHistory(db.Model):
-#     __tablename__ = 'eveRefMarketHistory'
-#     priKey = db.Column(db.Integer, primary_key=True)
-#     everefbody = db.Column(db.PickleType())
-#     analysis = db.Column(db.PickleType())
-#     cao = db.Column(db.DateTime())

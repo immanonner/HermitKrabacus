@@ -137,9 +137,8 @@ def update_market_history(force=False):
     history_cao = f_cache.get('history_cao')
     if history_cao is None or dt.date.today() - history_cao >= dt.timedelta(
             days=1) or force:
-        if db.inspect(db.engine).has_table("eveRefMarketHistory"):
-            update_everef()
-            # else:
-            # rebase_everef()
+        update_everef()
+        # else:
+        # rebase_everef()
         # set new cao
         f_cache.set('history_cao', dt.date.today(), expire=86400)

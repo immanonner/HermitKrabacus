@@ -22,7 +22,7 @@ def market():
         'market.html',
         title="market title",
         description="market description",
-        searchdata=esi_market.get_solarsystems(null_sec=True),
+        searchdata=SolarSystems.get_solarsystems(null_sec=True),
         form=sys_form)
 
 

@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import DataRequired
-from .esi_market import get_solarsystems
+from application.models import SolarSystems
 
 
 class SearchForm(FlaskForm):
@@ -10,4 +10,4 @@ class SearchForm(FlaskForm):
 
 
 class SelectForm(SearchForm):
-    select = SelectField(choices=get_solarsystems(null_sec=False))
+    select = SelectField(choices=SolarSystems.get_solarsystems(null_sec=False))

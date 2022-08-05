@@ -43,19 +43,22 @@ def init_app():
     assets.init_app(app)
 
     with app.app_context():
-        import application.routes
-        import application.auth
         from application.fuzzworks import update_eve_sde
         from application.eveRef import update_market_history
-        compile_static_assets(assets, default_bp_name="base_bp")
         db.create_all()
+
+        update_eve_sde(force=False)
+        update_market_history(force=True)
+
+        import application.routes
+        import application.auth
+
+        compile_static_assets(assets, default_bp_name="base_bp")
+
         # else:  # creates the db if it doesnt exist
         #     from flask_migrate import upgrade as db_upgrade
         #     db_upgrade()
         # update eve item data
-
-        update_eve_sde(force=False)
-        update_market_history(force=True)
 
         # Include our Routes to Register all Blueprints
         # bundle (js -> jsmin; less->cssmin)

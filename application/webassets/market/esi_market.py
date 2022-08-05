@@ -9,30 +9,6 @@ import json
 import pandas as pd
 
 
-def get_solarsystems(null_sec=True):
-    if not null_sec:
-        return [
-            rw[0]
-            for rw in db.session.query(SolarSystems.solarSystemName).filter(
-                SolarSystems.security >= 0)
-        ]
-    else:
-        return [
-            rw[0]
-            for rw in db.session.query(SolarSystems.solarSystemName).filter(
-                SolarSystems.security <= 0)
-        ]
-
-
-def get_types(region_id):
-    type_req = esiapp.op['get_markets_region_id_types'](region_id=region_id)
-    type_rsp = esiclient.request(type_req)
-    if type_rsp.status == 200:
-        pages = type_rsp.header['X-Pages'][0]
-        pass
-    return sorted([rw[0] for rw in db.session.query(InvTypes.typeID)])
-
-
 def get_sys_structures(sys_name):
     struc_ids_req = esiapp.op['get_characters_character_id_search'](
         character_id=current_user.character_id,
@@ -153,6 +129,7 @@ def include_empty_stock(sell_orders):
 @apptils.timer_func
 def get_region_history(reg_id):
     hist = f_cache.get('adf').loc[reg_id]
+    hist = hist.reset_index().to_dict(orient='records')
     return hist
 
 
@@ -199,6 +176,7 @@ def get_k_space_orders(hub):
 
 @apptils.timer_func
 def get_structure_market_analysis(struc_name, import_hub):
+
     sm = StructureMarkets.query.filter(
         StructureMarkets.name == struc_name).first()
     if sm.is_expired(sm.history_expiry):
