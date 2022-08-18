@@ -20,8 +20,8 @@ def market():
 
     return render_template(
         'market.html',
-        title="market title",
-        description="market description",
+        title="Solar System Search",
+        description="Search for a Null Security System",
         searchdata=SolarSystems.get_solarsystems(null_sec=True),
         form=sys_form)
 

@@ -7,7 +7,7 @@ from flask import current_app as app
 from flask import flash, redirect, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import null
-from sqlalchemy.exc import NoResultFound
+# from sqlalchemy.exc import NoResultFound
 
 from . import esiclient, esisecurity, login_manager
 from .models import Users, db
@@ -119,14 +119,14 @@ def callback():
     # actually we'd have to also check with character_owner_hash, to be
     # sure the owner is still the same, but that's an example only...
     # todo: verify owner hash is the same even necessary?
-    try:
-        user = Users.query.filter(
-            Users.character_id == cdata['sub'].split(':')[2],).one()
+    # try:
+    #     user = Users.query.filter(
+    #         Users.character_id == cdata['sub'].split(':')[2],).one()
 
-    except NoResultFound:
-        user = Users()
-        user.character_id = cdata['sub'].split(':')[2]
-        user.character_name = cdata['name']
+    # except  as e:
+    user = Users()
+    user.character_id = cdata['sub'].split(':')[2]
+    user.character_name = cdata['name']
     user.character_owner_hash = cdata['owner']
     if session.get('link_token', None) != None:
         user.link_token = session.pop('link_token')
