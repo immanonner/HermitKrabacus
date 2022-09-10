@@ -26,7 +26,7 @@ function build_selections(terms) {
 function showResults(val) {
     let res = document.getElementById("result");
     res.innerHTML = '';
-    if (ns.length <= 5) {
+    if (ns.length <= 10) {
         res.appendChild(build_selections(ns))
     } else {
         let terms = autocompleteMatch(val)

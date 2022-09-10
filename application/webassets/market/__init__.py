@@ -47,7 +47,10 @@ def structures(sys_name):
         return redirect(
             url_for('market_bp.upwellMarket',
                     struc_name=sm.name,
-                    import_hub=sys_form.select.data))
+                    import_hub=sys_form.select.data,
+                    dso=sys_form.dso.data,
+                    saleChance=sys_form.saleChance.data,
+                    records=sys_form.records.data))
     return render_template('market.html',
                            title="Select Structure",
                            description=f'{sys_name} Market Structure Selection',
@@ -60,8 +63,12 @@ def structures(sys_name):
 def upwellMarket():
     struc_name = request.args.get('struc_name')
     import_hub = request.args.get('import_hub')
+    dso = request.args.get('dso'),
+    saleChance = request.args.get('saleChance'),
+    records = request.args.get('records')
     market_view = esi_market.get_structure_market_analysis(
-        struc_name, import_hub)
+        struc_name, import_hub, float(dso[0]), float(saleChance[0]),
+        int(records))
 
     return render_template('upwell.html',
                            title=f'{struc_name}\n Market Analysis',

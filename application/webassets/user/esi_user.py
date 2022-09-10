@@ -8,6 +8,9 @@ from esipy import EsiClient, EsiSecurity
 from esipy.exceptions import APIException
 from flask import flash
 from flask_login import current_user
+import pandas as pd
+
+pd.set_option('display.float_format', lambda x: '%.2f' % x)
 
 
 def gen_auth_esiclient(user):
@@ -96,4 +99,92 @@ def nested_responses_to_dict(responses):
                     'danger')
                 continue
             account_data[toon.character_name][req_title] = res.data
+    account_analysis(account_data)
     return account_data
+
+
+def account_analysis(account_data):
+    # ============market transactions=====================
+    cgf = pd.DataFrame.from_records(
+        account_data.get("Chelsea's Grin").get('wallet_transactions'))
+    bdf = pd.DataFrame.from_records(
+        account_data.get('Baron Dashforth').get('wallet_transactions'))
+    df = pd.concat([cgf, bdf])
+    df.date = pd.to_datetime(df.date.apply(lambda x: x.v.date().isoformat()))
+    df = df[df.date >= (pd.to_datetime("today") - pd.Timedelta(days=30))]
+    df['total_transact'] = df.quantity * df.unit_price
+    # subt = df[df.is_buy == True].total_transact.sum()
+    # sumt = df[df.is_buy != True].total_transact.sum()
+    ndf = df.groupby(['is_buy', 'type_id'], as_index=False).agg({
+        'date': 'count',
+        'quantity': 'sum',
+        'total_transact': 'sum'
+    })
+    sells = ndf[ndf.is_buy == False]
+    buys = ndf[ndf.is_buy == True]
+    tst = pd.merge(buys, sells, how="left",
+                   on='type_id').drop(columns=['is_buy_x', 'is_buy_y'])
+    all_types = pd.read_sql("SELECT typeID, typeName, volume FROM invTypes",
+                            db.engine,
+                            index_col='typeID')
+    tst = pd.merge(tst,
+                   all_types,
+                   how="left",
+                   left_on='type_id',
+                   right_on='typeID').drop(columns=['volume', 'type_id'])
+    tst = tst.fillna(0)
+    tst.rename(columns={
+        'date_x': 'stock_freq',
+        'quantity_x': 'total_stock',
+        'total_transact_x': 'total_cost',
+        'date_y': 'sell_freq',
+        'quantity_y': 'stock_sold',
+        'total_transact_y': 'total_revenue',
+    },
+               inplace=True)
+    tst['on_hand'] = tst.total_stock - tst.stock_sold
+    tst['asp'] = tst.total_revenue / tst.stock_sold
+    tst['abp'] = tst.total_cost / tst.total_stock
+    tst['ppi'] = tst.asp - tst.abp
+    tst['up'] = tst.ppi * tst.on_hand
+    tst['rp'] = tst.ppi * tst.stock_sold
+
+    tst.sort_values('rp', ascending=False)
+
+    adf = pd.DataFrame.from_records(
+        account_data.get("Baron Dashforth").get('orders'))
+    adf = pd.merge(all_types,
+                   adf,
+                   how='right',
+                   left_on='typeID',
+                   right_on='type_id').drop(columns=[
+                       'type_id', 'region_id', 'range', 'issued',
+                       'is_corporation', 'volume', 'duration', 'order_id'
+                   ])
+    structures = pd.read_sql("SELECT struc_id, name FROM structureMarkets",
+                             db.engine,
+                             index_col='struc_id')
+    adf = pd.merge(adf,
+                   structures,
+                   how='left',
+                   left_on='location_id',
+                   right_on='struc_id').drop(columns=['location_id'])
+    gdf = adf.groupby(['typeName']).agg({
+        'price': 'mean',
+        'volume_remain': 'sum',
+        'volume_total': 'sum'
+    })
+    adf['ur'] = adf.price * adf.volume_remain
+    adf = adf.groupby(['name'], as_index=False).agg({
+        'ur': 'sum',
+        'typeName': "count"
+    }).rename(columns={'typeName': 'order_count'})
+    tst = pd.merge(tst, gdf, how='left', on='typeName')
+    tst.ppi.fillna(tst.price - tst.abp, inplace=True)
+    tst.up.fillna(tst.ppi * tst.on_hand, inplace=True)
+    tst.fillna(0, inplace=True)
+    account_data.get("Baron Dashforth")['orders'] = adf.to_json(
+        orient='records')
+    account_data.get("Baron Dashforth")['wallet_transactions'] = tst.to_json(
+        orient='records')
+    account_data.get("Baron Dashforth")['stats'] = (tst.rp.sum(), tst.up.sum())

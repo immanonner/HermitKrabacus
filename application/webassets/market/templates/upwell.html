@@ -5,9 +5,14 @@
 <script type="text/javascript">
     var mv = {{ gridData | safe }}
 </script>
+</div>
 <div class="container">
     <h1>{{title}}</h1>
     <p>{{description}}</p>
+    <div id="table-info" style="display:inline-block">
+        <button class="js-copy-btn">Send Selected Items to Clipboard</button>
+        <p>No Items Selected</p>
+    </div>
 </div>
 <div id="wrapper"></div>
 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>

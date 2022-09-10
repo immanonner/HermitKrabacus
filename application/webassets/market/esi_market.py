@@ -175,7 +175,8 @@ def get_k_space_orders(hub):
 
 
 @apptils.timer_func
-def get_structure_market_analysis(struc_name, import_hub):
+def get_structure_market_analysis(struc_name, import_hub, dso, saleChance,
+                                  records):
 
     sm = StructureMarkets.query.filter(
         StructureMarkets.name == struc_name).first()
@@ -234,7 +235,8 @@ def get_structure_market_analysis(struc_name, import_hub):
         'ppd': 0.0
     },
              inplace=True)
-    v = v[(v.dso <= 5.0) & (v.saleChance >= .70) & (v.records >= 30)]
+    v = v[(v.dso <= dso) & (v.saleChance >= saleChance) &
+          (v.records >= records) & (v.ppd >= 0)]
     v.sort_values(by=['ppd'], ascending=False, inplace=True)
     v.drop(columns=['type_id', 'typeID', 'pack_vol', 'aggVol', 'records'],
            inplace=True)

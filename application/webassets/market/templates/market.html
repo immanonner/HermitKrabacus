@@ -14,6 +14,9 @@
         onkeydown="showResults(this.value)",onclick="showResults(this.value)") }}
         {% if request.endpoint == 'market_bp.structures' %}
         {{form.select()}}
+        {{form.dso(placeholder="Days Til Stock Out")}}
+        {{form.saleChance(placeholder="Chance of Sale per Day")}}
+        {{form.records(placeholder="Minimum Record Count")}}
         {% endif %}
         <div id="result"></div>
         <p>{{form.submit(label="new search")}}</p>
