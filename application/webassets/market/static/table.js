@@ -18,22 +18,24 @@ if (document.getElementById("wrapper")) {
                             row.cell(2).data,
                             // lastPriceAvg: 
                             row.cell(3).data,
-                            // velocity: 
+                            // order_id: 
                             row.cell(4).data,
-                            // saleChance: 
+                            // velocity: 
                             row.cell(5).data,
-                            // stock_remaining: 
+                            // saleChance: 
                             row.cell(6).data,
-                            // dso: 
+                            // stock_remaining: 
                             row.cell(7).data,
-                            // be: 
+                            // dso: 
                             row.cell(8).data,
-                            // ppi: 
+                            // be: 
                             row.cell(9).data,
-                            // rr: 
+                            // ppi: 
                             row.cell(10).data,
-                            // ppd: 
-                            row.cell(11).data].join(', ')
+                            // rr: 
+                            row.cell(11).data,
+                            //ppd:
+                            row.cell(12).data].join(', ')
                     },
                 },
             },
@@ -45,6 +47,10 @@ if (document.getElementById("wrapper")) {
             {
                 name: 'lastPriceAvg',
                 formatter: (cell) => `${cell.toLocaleString()}`, width: '5%'
+            },
+            {
+                name: 'order_id',
+                width: '3%'
             },
             { name: 'velocity', width: '3%' },
             { name: 'saleChance', width: '3%' },
@@ -85,14 +91,14 @@ if (document.getElementById("wrapper")) {
         copyBtn.addEventListener('click', function (event) {
             // find the plugin with the given plugin ID
             // read the selected rows from the plugin's store
-            copyTextToClipboard(checkboxPlugin.props.store.state.rowIds.map((row) => row.split(', ')[0] + ' ' + Math.round(row.split(', ')[3])).join('\r\n'));
+            copyTextToClipboard(checkboxPlugin.props.store.state.rowIds.map((row) => row.split(', ')[0] + ' ' + Math.round(row.split(', ')[4])).join('\r\n'));
         });
         checkboxPlugin.props.store.on('updated', () => {
             let quickView = document.querySelector('#table-info>p')
             let stmt = 'No Items Selected'
             if (!checkboxPlugin.props.store.state.rowIds.length) { return quickView.innerHTML = stmt }
             quickView.innerHTML = ''
-            s = checkboxPlugin.props.store.state.rowIds.map((rowId) => parseInt(rowId.split(', ')[10])).reduce((a, b) => a + b, 0).toLocaleString();
+            s = checkboxPlugin.props.store.state.rowIds.map((rowId) => parseInt(rowId.split(', ')[11])).reduce((a, b) => a + b, 0).toLocaleString();
             // console.log('checkbox updated', checkboxPlugin.props.store.state.rowIds);
             return quickView.innerHTML = `${checkboxPlugin.props.store.state.rowIds.length}\ Items Selected;\ PPD SUM:\ ${s}`
 

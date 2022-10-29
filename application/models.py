@@ -131,9 +131,7 @@ class SolarSystems(db.Model):
             ]
         else:
             return [
-                rw[0]
-                for rw in db.session.query(SolarSystems.solarSystemName).filter(
-                    SolarSystems.security <= 0)
+                rw[0] for rw in db.session.query(SolarSystems.solarSystemName)
             ]
 
 

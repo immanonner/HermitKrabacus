@@ -42,7 +42,7 @@ def rebase_everef():
     """Pulls every market history csv record from EVEREF in the last year // parses them with dask.
        dumps to local parquet file
     """
-    start_date = (dt.date.today() - dt.timedelta(days=365))
+    start_date = (dt.date.today() - dt.timedelta(days=90))
     end_date = dt.date.today() - dt.timedelta(days=1)
     rdf = make_everef_requests(start_date, end_date)
     rdf = rdf.set_index('date', drop=False, sorted=True)
@@ -73,7 +73,7 @@ def update_everef():
 
         # ensure we dont duplicate data upon append
         odf = hist.loc[pd.Timestamp.today() -
-                       pd.Timedelta(days=365):pd.Timestamp(start_date) -
+                       pd.Timedelta(days=90):pd.Timestamp(start_date) -
                        pd.Timedelta(days=1)]
 
         ndf = dd.concat([odf, udf])
@@ -120,7 +120,7 @@ def make_everef_requests(start_date, end_date):
     df = dd.concat(results)
     df = df.drop(['http_last_modified', 'highest', 'lowest', 'order_count'],
                  axis=1)
-    df = df[df.region_id.isin(EVE_NULL_REGIONS)]
+    # df = df[df.region_id.isin(EVE_NULL_REGIONS)]
 
     df.date = dd.to_datetime(df.date, infer_datetime_format=True)
     df = df.rename(columns={

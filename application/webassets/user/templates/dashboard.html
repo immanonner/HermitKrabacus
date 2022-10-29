@@ -18,14 +18,22 @@
 {% for character, attributes in characters.items() %}
 <div class="container">
     <h1>{{character}}</h1>
-    <p>{{attributes.get('wallet')}}</p>
+    <p>
+        <script type="text/javascript">document.write({{ attributes.get('wallet') }}.toLocaleString())</script>
+    </p>
     <!-- <p>{{attributes.get('orders')}}</p> -->
     <!-- <p>{{attributes.get('wallet_transactions')}}</p> -->
 </div>
 {% endfor %}
 <div>
-    <p> Realized Profit: {{ characters['Baron Dashforth']['stats'][0] }}</p>
-    <p> Pending Profit in Orders: {{ characters['Baron Dashforth']['stats'][1] }}</p>
+    <p> Realized Profit:
+        <script
+            type="text/javascript">document.write({{ characters['Baron Dashforth']['stats'][0] | safe }}.toLocaleString())</script>
+    </p>
+    <p> Pending Profit in Orders:
+        <script
+            type="text/javascript">document.write({{ characters['Baron Dashforth']['stats'][1] }}.toLocaleString())</script>
+    </p>
 </div>
 <div id="summary_grid"></div>
 <div id="stat_grid"></div>

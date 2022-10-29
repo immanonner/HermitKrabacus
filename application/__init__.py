@@ -48,7 +48,7 @@ def init_app():
         db.create_all()
 
         update_eve_sde(force=False)
-        update_market_history(force=True)
+        update_market_history(force=False)
 
         import application.routes
         import application.auth

@@ -111,7 +111,13 @@ def account_analysis(account_data):
         account_data.get('Baron Dashforth').get('wallet_transactions'))
     df = pd.concat([cgf, bdf])
     df.date = pd.to_datetime(df.date.apply(lambda x: x.v.date().isoformat()))
-    df = df[df.date >= (pd.to_datetime("today") - pd.Timedelta(days=30))]
+    df[df.date >= (
+        pd.to_datetime("today") -
+        pd.Timedelta(days=pd.to_datetime("today").day - 1,
+                     hours=pd.to_datetime("today").hour,
+                     minutes=pd.to_datetime("today").minute,
+                     seconds=pd.to_datetime("today").second,
+                     microseconds=pd.to_datetime("today").microsecond - 1))]
     df['total_transact'] = df.quantity * df.unit_price
     # subt = df[df.is_buy == True].total_transact.sum()
     # sumt = df[df.is_buy != True].total_transact.sum()

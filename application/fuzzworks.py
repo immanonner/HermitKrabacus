@@ -57,10 +57,9 @@ def get_fuzz_latest():
                     "solarSystemName": rw.pop("solarSystemName"),
                     "security": float(rw.pop("security")),
                     "securityClass": rw.pop("securityClass")
-                }
-                             for rw in resp_body
-                             if int(rw['regionID']) in EVE_NULL_REGIONS or
-                             int(rw["solarSystemID"]) in EVE_MARKET_HUBS.keys()]
+                } for rw in resp_body]
+                #  if int(rw['regionID']) in EVE_NULL_REGIONS or
+                #  int(rw["solarSystemID"]) in EVE_MARKET_HUBS.keys()]
         else:
             resp_body = resp.status_code
         return {name: resp_body}

@@ -12,7 +12,7 @@ import pandas as pd
 def get_sys_structures(sys_name):
     struc_ids_req = esiapp.op['get_characters_character_id_search'](
         character_id=current_user.character_id,
-        categories=['structure'],
+        categories=['structure', 'station'],
         search=sys_name,
         token=esiclient.security.access_token)
     struc_id_resp = esiclient.request(struc_ids_req)
@@ -26,21 +26,38 @@ def get_sys_structures(sys_name):
             }
         }  #default result
         if len(struc_id_resp.data) > 0:
-            for id in struc_id_resp.data['structure']:
-                r = esiapp.op['get_universe_structures_structure_id'](
-                    structure_id=id, token=current_user.access_token)
-                struc_name_reqs.append(r)
+            if struc_id_resp.data.get('structure'):
+                for id in struc_id_resp.data['structure']:
+                    r = esiapp.op['get_universe_structures_structure_id'](
+                        structure_id=id, token=current_user.access_token)
+                    struc_name_reqs.append(r)
+            if struc_id_resp.data.get('station'):
+                for id in struc_id_resp.data['station']:
+                    r = esiapp.op['get_universe_stations_station_id'](
+                        station_id=id)
+                    struc_name_reqs.append(r)
             results = [
                 i for i in esiclient.multi_request(struc_name_reqs, threads=20)
             ]
-            results = {
+            structures = {
                 int(req._Request__p['path']['structure_id']): {
                     'name': resp.data['name'],
                     'type_id': int(resp.data['type_id'])
                 }
                 for req, resp in results
-                if int(resp.data['type_id']) in EVE_MARKET_STRUCTURES
+                if int(resp.data['type_id']) in EVE_MARKET_STRUCTURES and
+                req._Request__p['path'].get('structure_id')
             }
+            stations = {
+                int(req._Request__p['path']['station_id']): {
+                    'name': resp.data['name'],
+                    'type_id': int(resp.data['type_id'])
+                }
+                for req, resp in results
+                if req._Request__p['path'].get('station_id')
+            }
+            structures.update(stations)
+            results = structures
         else:
             flash(
                 f'No results found for {current_user.character_name} in SolarSystem: {sys_name}; ensure the toon has docking access...',
@@ -97,14 +114,15 @@ def include_empty_stock(sell_orders):
     orders = pd.DataFrame(sell_orders).set_index('type_id', drop=True)
     #select only sell orders and drop irrelevant columns
     orders = orders[orders.is_buy_order == False].drop(columns=[
-        'duration', 'issued', 'min_volume', 'range', 'order_id', 'is_buy_order',
+        'duration', 'issued', 'min_volume', 'range', 'is_buy_order',
         'volume_total'
     ])
     # group orders by type_id and calc remaining volumes and minimum price of each type
     orders = orders.groupby('type_id').agg({
         'volume_remain': 'sum',
         'price': 'min',
-        'expires': 'first'
+        'expires': 'first',
+        'order_id': 'count',
     })
     all_types = pd.read_sql("SELECT typeID, typeName, volume FROM invTypes",
                             db.engine,
@@ -136,15 +154,21 @@ def get_region_history(reg_id):
 @apptils.timer_func
 def get_k_space_orders(hub):
     sm = StructureMarkets()
-    sm.struc_id = EVE_MARKET_HUBS.get(hub.solarSystemID)[0]
-    sm.name = EVE_MARKET_HUBS.get(hub.solarSystemID)[1]
-    sm.typeID = EVE_MARKET_HUBS.get(hub.solarSystemID)[2]
-    sm.solarSystemID = hub.solarSystemID
+    if EVE_MARKET_HUBS.get(hub.solarSystemID):
+        sm.struc_id = EVE_MARKET_HUBS.get(hub.solarSystemID)[0]
+        sm.name = EVE_MARKET_HUBS.get(hub.solarSystemID)[1]
+        sm.typeID = EVE_MARKET_HUBS.get(hub.solarSystemID)[2]
+        sm.solarSystemID = hub.solarSystemID
+    else:
+        sm.struc_id = hub.struc_id
+        sm.name = hub.name
+        sm.typeID = hub.typeID
+        sm.solarSystemID = hub.solarSystemID
     db.session.merge(sm)
     db.session.commit()
-
-    rsp = esiclient.request(
-        esiapp.op['get_markets_region_id_orders'](region_id=hub.regionID))
+    sm = StructureMarkets.query.filter(StructureMarkets.name == sm.name).first()
+    rsp = esiclient.request(esiapp.op['get_markets_region_id_orders'](
+        region_id=sm.solarSystems.regionID))
     if rsp.status == 200:
         pages = rsp.header['X-Pages'][0]
         expires = rsp.header['expires'][0]
@@ -153,7 +177,7 @@ def get_k_space_orders(hub):
             operations = []
             for page in range(2, pages + 1):
                 operations.append(esiapp.op['get_markets_region_id_orders'](
-                    region_id=hub.regionID, page=page))
+                    region_id=sm.solarSystems.regionID, page=page))
         [
             results.extend([{
                 'expires': rs.header['expires'][0],
@@ -185,7 +209,13 @@ def get_structure_market_analysis(struc_name, import_hub, dso, saleChance,
         db.session.commit()
 
     if sm.is_expired(sm.sell_orders_expiry):
-        orders = include_empty_stock(get_struc_sell_orders(sm.struc_id))
+        # switch between the two ops for the new station feature
+        if sm.typeID not in EVE_MARKET_STRUCTURES:
+            orders = pd.DataFrame(get_k_space_orders(sm))
+            orders = include_empty_stock(
+                orders[orders.location_id == sm.struc_id].to_dict('records'))
+        else:
+            orders = include_empty_stock(get_struc_sell_orders(sm.struc_id))
         sm.update_sell_orders(orders)
         db.session.commit()
 
@@ -208,7 +238,8 @@ def get_structure_market_analysis(struc_name, import_hub, dso, saleChance,
     ], inplace=True)
     ih_o.rename(columns={
         'price': 'hub_min_price',
-        'volume': 'pack_vol'
+        'volume': 'pack_vol',
+        'order_id': 'hub_order_ids'
     },
                 inplace=True)
     so = pd.DataFrame(sm.sell_orders)
@@ -217,7 +248,7 @@ def get_structure_market_analysis(struc_name, import_hub, dso, saleChance,
     v = pd.merge(v, so, on='type_id', how='left')
     v['dso'] = round(v.stock_remaining / v.velocity, 2)
     v['be'] = round(
-        v.hub_min_price + (v.hub_min_price * .06) + (500 * v.pack_vol), 2)
+        v.hub_min_price + (v.hub_min_price * .085) + (350 * v.pack_vol), 2)
     v['ppi'] = round(v.lastPriceAvg - v.be, 2)
     v['rr'] = round(v.ppi / v.be, 2)
     v['ppd'] = round(v.ppi * v.velocity, 2)
@@ -238,6 +269,8 @@ def get_structure_market_analysis(struc_name, import_hub, dso, saleChance,
     v = v[(v.dso <= dso) & (v.saleChance >= saleChance) &
           (v.records >= records) & (v.ppd >= 0)]
     v.sort_values(by=['ppd'], ascending=False, inplace=True)
-    v.drop(columns=['type_id', 'typeID', 'pack_vol', 'aggVol', 'records'],
+    v.drop(columns=[
+        'type_id', 'typeID', 'pack_vol', 'aggVol', 'records', 'hub_order_ids'
+    ],
            inplace=True)
     return v

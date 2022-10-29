@@ -58,7 +58,10 @@ if (document.getElementById("stat_grid")) {
         },
         fixedHeader: true,
         height: '800px',
-        data: mv
+        data: mv,
+        search: {
+            enabled: true
+        }
     }).render(document.getElementById("stat_grid"))
 };
 if (document.getElementById("summary_grid")) {

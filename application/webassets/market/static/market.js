@@ -2,7 +2,7 @@ function autocompleteMatch(input) {
     if (input == '') {
         return [];
     }
-    var reg = new RegExp(input.toUpperCase())
+    var reg = new RegExp(input)
     var names = ns
     return names.filter(function (term) {
         if (term.match(reg)) {
@@ -16,7 +16,7 @@ function build_selections(terms) {
     for (i = 0; i < terms.length; i++) {
         let li = document.createElement("li");
         li.appendChild(document.createTextNode(terms[i]));
-        li.setAttribute("onclick", "update_input('" + terms[i] + "')");
+        li.setAttribute("onclick", "update_input(`" + terms[i] + "`)");
         li.innertext = terms[i]
         selections.appendChild(li);
     }
