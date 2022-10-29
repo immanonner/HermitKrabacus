@@ -266,8 +266,8 @@ def get_structure_market_analysis(struc_name, import_hub, dso, saleChance,
         'ppd': 0.0
     },
              inplace=True)
-    v = v[(v.dso <= dso) & (v.saleChance >= saleChance) &
-          (v.records >= records) & (v.ppd >= 0)]
+    v = v[(v.hub_min_price > 0) & (v.dso <= dso) &
+          (v.saleChance >= saleChance) & (v.records >= records) & (v.ppd >= 0)]
     v.sort_values(by=['ppd'], ascending=False, inplace=True)
     v.drop(columns=[
         'type_id', 'typeID', 'pack_vol', 'aggVol', 'records', 'hub_order_ids'
