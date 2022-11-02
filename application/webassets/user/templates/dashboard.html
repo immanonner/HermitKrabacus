@@ -5,6 +5,8 @@
 <script type="text/javascript">
     var mv = {{ characters['Baron Dashforth']['wallet_transactions'] | safe }}
     var ov = {{ characters['Baron Dashforth']['orders'] | safe }}
+    var osv = {{ characters['Baron Dashforth']['order_stats'] | safe }}
+    var sv = {{ characters['Baron Dashforth']['stats'] | safe }}
 </script>
 <div class="container">
     <h1>{{title}}</h1>
@@ -21,22 +23,12 @@
     <p>
         <script type="text/javascript">document.write({{ attributes.get('wallet') }}.toLocaleString())</script>
     </p>
-    <!-- <p>{{attributes.get('orders')}}</p> -->
-    <!-- <p>{{attributes.get('wallet_transactions')}}</p> -->
 </div>
 {% endfor %}
-<div>
-    <p> Realized Profit:
-        <script
-            type="text/javascript">document.write({{ characters['Baron Dashforth']['stats'][0] | safe }}.toLocaleString())</script>
-    </p>
-    <p> Pending Profit in Orders:
-        <script
-            type="text/javascript">document.write({{ characters['Baron Dashforth']['stats'][1] }}.toLocaleString())</script>
-    </p>
-</div>
-<div id="summary_grid"></div>
 <div id="stat_grid"></div>
+<div id="order_stat_grid"></div>
+<div id="order_grid"></div>
+<div id="market_grid"></div>
 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 <script src="https://unpkg.com/gridjs/plugins/selection/dist/selection.umd.js"></script>
 {% endblock %}

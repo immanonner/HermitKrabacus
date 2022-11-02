@@ -12,29 +12,29 @@ if (document.getElementById("wrapper")) {
                     props: {
                         // use the "typeName" column as the row identifier
                         id: (row) => [
-                            // typeName:
+                            //  0 typeName:
                             row.cell(1).data,
-                            // hub_min_price: 
+                            // 1 hub_min_price: 
                             row.cell(2).data,
-                            // lastPriceAvg: 
+                            //  2 lastPriceAvg: 
                             row.cell(3).data,
-                            // order_id: 
+                            // 3 order_id: 
                             row.cell(4).data,
-                            // velocity: 
+                            // 4 velocity: 
                             row.cell(5).data,
-                            // saleChance: 
+                            // 5 saleChance: 
                             row.cell(6).data,
-                            // stock_remaining: 
+                            // 6 stock_remaining: 
                             row.cell(7).data,
-                            // dso: 
+                            // 7 dso: 
                             row.cell(8).data,
-                            // be: 
+                            // 8 be: 
                             row.cell(9).data,
-                            // ppi: 
+                            // 9 ppi: 
                             row.cell(10).data,
-                            // rr: 
+                            // 10 rr: 
                             row.cell(11).data,
-                            //ppd:
+                            // 11 ppd:
                             row.cell(12).data].join(', ')
                     },
                 },
@@ -98,9 +98,10 @@ if (document.getElementById("wrapper")) {
             let stmt = 'No Items Selected'
             if (!checkboxPlugin.props.store.state.rowIds.length) { return quickView.innerHTML = stmt }
             quickView.innerHTML = ''
-            s = checkboxPlugin.props.store.state.rowIds.map((rowId) => parseInt(rowId.split(', ')[11])).reduce((a, b) => a + b, 0).toLocaleString();
+            ppd_sum = checkboxPlugin.props.store.state.rowIds.map((rowId) => parseInt(rowId.split(', ')[11])).reduce((a, b) => a + b, 0).toLocaleString();
+            est_purchase_value = checkboxPlugin.props.store.state.rowIds.map((rowId) => parseInt(rowId.split(', ')[1]) * parseInt(rowId.split(', ')[4])).reduce((a, b) => a + b, 0).toLocaleString();
             // console.log('checkbox updated', checkboxPlugin.props.store.state.rowIds);
-            return quickView.innerHTML = `${checkboxPlugin.props.store.state.rowIds.length}\ Items Selected;\ PPD SUM:\ ${s}`
+            return quickView.innerHTML = `${checkboxPlugin.props.store.state.rowIds.length}\ Items Selected;\ PPD SUM:\ ${ppd_sum}\;\ EST PURCHASE VALUE:\ ${est_purchase_value}`
 
         });
 
