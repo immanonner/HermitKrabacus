@@ -3,7 +3,7 @@ if (document.getElementById("stat_grid")) {
         columns: [
             { name: "ontime_realized_profit", width: '3%', formatter: (cell) => `${cell.toLocaleString()}` },
             { name: 'ontime_realized_revenue', width: '3%', formatter: (cell) => `${cell.toLocaleString()}` },
-            { name: 'ontime_realized_roi', width: '3%' },
+            { name: 'ontime_realized_roi', formatter: (cell) => `${(parseFloat(cell) * 100).toFixed(2)}%`, width: '3%' },
             { name: 'ontime_unrealized_profit', width: '3%', formatter: (cell) => `${cell.toLocaleString()}` },
             { name: 'total_unrealized_revenue', width: '3%', formatter: (cell) => `${cell.toLocaleString()}` },
             { name: 'total_realized_revenue', width: '3%', formatter: (cell) => `${cell.toLocaleString()}` },
@@ -46,7 +46,7 @@ if (document.getElementById("order_stat_grid")) {
 if (document.getElementById("order_grid")) {
     const grid = new gridjs.Grid({
         columns: [
-            { name: 'typeName', width: '3%' },
+            { name: 'typeName', width: '8%' },
             { name: 'buy_avg_price', formatter: (cell) => `${cell.toLocaleString()}`, width: '3%' },
             { name: 'sell_avg_price', formatter: (cell) => `${cell.toLocaleString()}`, width: '3%' },
             { name: 'current_profit_per_item', formatter: (cell) => `${cell.toLocaleString()}`, width: '3%' },
@@ -54,7 +54,7 @@ if (document.getElementById("order_grid")) {
             { name: 'remaining_order_value', formatter: (cell) => `${cell.toLocaleString()}`, width: '3%' },
             { name: 'volume_remain', formatter: (cell) => `${cell.toLocaleString()}`, width: '3%' },
             { name: 'shelf_life', width: '3%' },
-            { name: 'current_roi', width: '3%' },
+            { name: 'current_roi', formatter: (cell) => `${(parseFloat(cell) * 100).toFixed(2)}%`, width: '3%' },
         ],
 
         sort: true,
@@ -86,7 +86,7 @@ if (document.getElementById("market_grid")) {
             { name: 'realized_profit', width: '3%', formatter: (cell) => `${cell != null ? cell.toLocaleString() : cell}` },
             { name: 'realized_velocity', formatter: (cell) => `${cell != null ? cell.toLocaleString() : cell}`, width: '3%' },
             { name: 'realized_ppd', formatter: (cell) => `${cell != null ? cell.toLocaleString() : cell}`, width: '3%' },
-            { name: 'realized_roi', width: '3%' },
+            { name: 'realized_roi', formatter: (cell) => `${(parseFloat(cell) * 100).toFixed(2)}%`, width: '3%' },
         ],
         sort: true,
         pagination: {

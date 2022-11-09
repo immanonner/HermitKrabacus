@@ -62,7 +62,7 @@ def threaded_user_mutli_request(toon):
     return client.multi_request(request_bundle)
 
 
-def get_user_eve_info():
+def get_user_eve_info(hist_range):
 
     results = []
     with ThreadPoolExecutor(max_workers=10) as pool:
@@ -71,6 +71,7 @@ def get_user_eve_info():
             results.append(result)
         # reset esi tokens to origin character's tokens
     results = nested_responses_to_dict(results)
+    results = account_analysis(results, hist_range)
     if esiclient.security.access_token != current_user.access_token:
         esiclient.security.update_token(current_user.get_sso_data())
     return results
@@ -100,11 +101,10 @@ def nested_responses_to_dict(responses):
                     'danger')
                 continue
             account_data[toon.character_name][req_title] = res.data
-    account_analysis(account_data)
     return account_data
 
 
-def account_analysis(account_data):
+def account_analysis(account_data, hist_range):
     #get typenames and structure names on the dfs
     structure_names = pd.read_sql_query(
         'select struc_id, name from structureMarkets', db.engine)
@@ -115,26 +115,35 @@ def account_analysis(account_data):
         account_data.get("Chelsea's Grin").get('wallet_transactions'))
     bdf = pd.DataFrame.from_records(
         account_data.get('Baron Dashforth').get('wallet_transactions'))
+
     df = pd.concat([cgf, bdf])
     df.date = pd.to_datetime(df.date.apply(lambda x: x.v.date().isoformat()))
-    df = df[df.date >= (
-        pd.to_datetime("today") - pd.Timedelta(days=7)
-        # pd.Timedelta(days=pd.to_datetime("today").day - 1,
-        #              hours=pd.to_datetime("today").hour,
-        #              minutes=pd.to_datetime("today").minute,
-        #              seconds=pd.to_datetime("today").second,
-        #              microseconds=pd.to_datetime("today").microsecond - 1)
-    )]
-    df['total_transact'] = df.quantity * df.unit_price
+    # adjust the records to reflect the users desire: less than 30 days or month-to-date
+    rng = pd.Timedelta(days=hist_range) if hist_range <= 30 else pd.Timedelta(
+        days=pd.to_datetime("today").day - 1,
+        hours=pd.to_datetime("today").hour,
+        minutes=pd.to_datetime("today").minute,
+        seconds=pd.to_datetime("today").second,
+        microseconds=pd.to_datetime("today").microsecond - 1)
+    df = df[df.date >= (pd.to_datetime("today") - rng)]
 
+    df['total_transact'] = df.quantity * df.unit_price
+    # get the total amount of isk spent on each type; get amount of days between first buy and last sell transaction per type; get sum of volume per type
     ndf = df.groupby(['is_buy', 'type_id'], as_index=False).agg({
-        'date': ['count', lambda x: (x.max() - x.min()).days],
+        'date': [
+            'count', lambda x:
+            (pd.to_datetime("today") - x.min()
+             if x.max() == x.min() else x.max() - x.min()).days
+        ],
         'quantity': 'sum',
         'total_transact': 'sum'
     })
     ndf['avg_price'] = ndf.total_transact / ndf.quantity
+
+    # seperate out the buy and sell dataframes
     sells = pd.DataFrame(ndf[ndf.is_buy == False])
     buys = pd.DataFrame(ndf[ndf.is_buy == True])
+    # join buy/sell side by side rather than on top of each other
     intermediate_df = pd.merge(buys, sells, how='outer', on='type_id').drop(
         columns=['is_buy_x', 'is_buy_y', ('date_x', '<lambda_0>')])
 
@@ -156,6 +165,7 @@ def account_analysis(account_data):
         'avg_price_y': 'sell_avg_price'
     },
                            inplace=True)
+    # apply base values to the dataframe
     default_values = {
         'buy_freq': 0,
         'sell_freq': 0,
@@ -168,6 +178,7 @@ def account_analysis(account_data):
         'sell_avg_price': 0
     }
     intermediate_df.fillna(default_values, inplace=True)
+    # dervive stats from the dataframe
     intermediate_df[
         'profit_per_item'] = intermediate_df.sell_avg_price - intermediate_df.buy_avg_price
     intermediate_df[
@@ -179,6 +190,7 @@ def account_analysis(account_data):
         'realized_ppd'] = intermediate_df.realized_profit / intermediate_df.shelf_life
     intermediate_df[
         'realized_roi'] = intermediate_df.realized_profit / intermediate_df.buy_total_value
+    # get typeNames to typeID
     intermediate_df = pd.merge(
         intermediate_df,
         types_df,
@@ -229,13 +241,14 @@ def account_analysis(account_data):
                    inplace=True)
     orders_df[
         'remaining_order_value'] = orders_df.price * orders_df.volume_remain
-
+    # get structure name to structureID
     orders_df = pd.merge(
         orders_df,
         structure_names,
         how='inner',
         left_on='location_id',
         right_on='struc_id').drop(columns=['location_id', 'struc_id'])
+    # get typeNames to typeID
     orders_df = pd.merge(orders_df,
                          types_df,
                          how='inner',
@@ -256,11 +269,11 @@ def account_analysis(account_data):
     orders_df[
         'sell_avg_price'] = orders_df.remaining_order_value / orders_df.volume_remain
 
-    #join market history to orders to get the buy avg price per type id
+    #join market history to orders to get the buy avg price and shelf life per type id
     orders_df = pd.merge(
         orders_df,
         intermediate_df[['type_id', 'buy_avg_price', 'shelf_life']],
-        how='inner',
+        how='left',
         on='type_id').drop(columns=['type_id'])
     intermediate_df.drop(columns=['type_id'], inplace=True)
     orders_df[
@@ -269,6 +282,18 @@ def account_analysis(account_data):
         'unrealized_profit'] = orders_df.current_profit_per_item * orders_df.volume_remain
     orders_df[
         'current_roi'] = orders_df.current_profit_per_item / orders_df.buy_avg_price
+    # apply base values to the dataframe
+    default_values = {
+        'buy_avg_price': 0,
+        'sell_avg_price': 0,
+        'shelf_life': pd.Timedelta(0).days,
+        'current_profit_per_item': 0,
+        'unrealized_profit': 0,
+        'remaining_order_value': 0,
+        'volume_remain': 0,
+        'current_roi': 0,
+    }
+    orders_df.fillna(default_values, inplace=True)
 
     # Reordered column buy_avg_price
     orders_df_columns = [
@@ -323,7 +348,8 @@ def account_analysis(account_data):
                                         0.0].remaining_order_value.sum()
     realized_revenue = intermediate_df.sell_total_value.sum(
     ) - late_realized_revenue
-    realized_roi = realized_profit / realized_revenue
+    realized_roi = (realized_profit /
+                    realized_revenue) if realized_revenue > 0 else 0
 
     total_unrealized_revenue = orders_df.remaining_order_value.sum()
 
@@ -347,3 +373,4 @@ def account_analysis(account_data):
     account_data.get("Baron Dashforth")['order_stats'] = order_stats_df.to_json(
         orient='records')
     account_data.get("Baron Dashforth")['stats'] = json.dumps(statistics)
+    return account_data
