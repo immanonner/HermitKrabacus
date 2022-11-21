@@ -28,14 +28,13 @@ if (document.getElementById("wrapper")) {
                             row.cell(7).data,
                             // 7 dso: 
                             row.cell(8).data,
-                            // 8 be: 
+                            // 8 ppi: 
                             row.cell(9).data,
-                            // 9 ppi: 
+                            // 9 rr: 
                             row.cell(10).data,
-                            // 10 rr: 
+                            // 10 ppd: 
                             row.cell(11).data,
-                            // 11 ppd:
-                            row.cell(12).data].join(', ')
+                        ].join(', ')
                     },
                 },
             },
@@ -60,10 +59,6 @@ if (document.getElementById("wrapper")) {
             },
             { name: 'dso', width: '3%' },
             {
-                name: 'be',
-                formatter: (cell) => `${cell.toLocaleString()}`, width: '5%'
-            },
-            {
                 name: 'ppi',
                 formatter: (cell) => `${cell.toLocaleString()}`, width: '5%'
             },
@@ -86,7 +81,7 @@ if (document.getElementById("wrapper")) {
     }).render(document.getElementById("wrapper"));
 
     grid.on('ready', () => {
-        const copyBtn = document.querySelector('.js-copy-btn')
+        const copyBtn = document.querySelector('.js-copy-btn');
         const checkboxPlugin = grid.config.plugin.get('myCheckbox');
         copyBtn.addEventListener('click', function (event) {
             // find the plugin with the given plugin ID
@@ -94,16 +89,28 @@ if (document.getElementById("wrapper")) {
             copyTextToClipboard(checkboxPlugin.props.store.state.rowIds.map((row) => row.split(', ')[0] + ' ' + Math.round(row.split(', ')[4])).join('\r\n'));
         });
         checkboxPlugin.props.store.on('updated', () => {
-            let quickView = document.querySelector('#table-info>p')
-            let stmt = 'No Items Selected'
-            if (!checkboxPlugin.props.store.state.rowIds.length) { return quickView.innerHTML = stmt }
-            quickView.innerHTML = ''
-            ppd_sum = checkboxPlugin.props.store.state.rowIds.map((rowId) => parseInt(rowId.split(', ')[11])).reduce((a, b) => a + b, 0).toLocaleString();
-            est_purchase_value = checkboxPlugin.props.store.state.rowIds.map((rowId) => parseInt(rowId.split(', ')[1]) * parseInt(rowId.split(', ')[4])).reduce((a, b) => a + b, 0).toLocaleString();
-            // console.log('checkbox updated', checkboxPlugin.props.store.state.rowIds);
-            return quickView.innerHTML = `${checkboxPlugin.props.store.state.rowIds.length}\ Items Selected;\ PPD SUM:\ ${ppd_sum}\;\ EST PURCHASE VALUE:\ ${est_purchase_value}`
-
+            let quickView = document.querySelector('#table-info>p');
+            let stmt = 'No Items Selected';
+            if (!checkboxPlugin.props.store.state.rowIds.length) { return quickView.innerHTML = stmt };
+            quickView.innerHTML = '';
+            let ppd_sum = checkboxPlugin.props.store.state.rowIds.map((rowId) => parseInt(rowId.split(', ')[10])).reduce((a, b) => a + b, 0);
+            let formatted_appraise_items = checkboxPlugin.props.store.state.rowIds.map((row) => row.split(', ')[0] + ' ' + Math.round(row.split(', ')[4])).join('\r\n');
+            let appraisal = fetchJanice("https://janice.e-351.com/api/rest/v2/appraisal?market=2&designation=appraisal&pricing=sell&pricingVariant=immediate&persist=false&compactize=true&pricePercentage=1", formatted_appraise_items);
+            appraisal.then((data) => {
+                let urlParams = new URLSearchParams(window.location.search);
+                let url = "https://api.pushx.net//api/quote/JSON/?" + `startSystemName=${urlParams.get('import_hub')}&endSystemName=${urlParams.get('sys_name')}&volume=${Math.round(data.totalPackagedVolume)}&collateral=${data.immediatePrices.totalSellPrice}&apiClient=hermitKrabacus`;
+                let pushx = fetchPushX(url);
+                pushx.then((d) => {
+                    quickView.innerHTML = ` ${checkboxPlugin.props.store.state.rowIds.length}\ Items Selected<br>`
+                        + `PPD SUM:\ ${ppd_sum.toLocaleString()}<br>`
+                        + `Janice Jita Price:\ ${data.immediatePrices.totalSellPrice.toLocaleString()}<br>`
+                        + `ROI:\ ${Math.round((ppd_sum / data.immediatePrices.totalSellPrice) * 100).toLocaleString()}%<br>`
+                        + `PushX Rush:\ ${Math.round(d.PriceRush).toLocaleString()}<br>`
+                        + `Darkhorse Normal:\ ${Math.round((data.immediatePrices.totalSellPrice * .01) + data.totalPackagedVolume * 350).toLocaleString()}<br>`;
+                });
+            });
+            return quickView.innerHTML = `${checkboxPlugin.props.store.state.rowIds.length}\ Items Selected<br>\ PPD SUM:\ ${ppd_sum.toLocaleString()}<br><br><br><br><br>`;
         });
 
-    })
-}
+    });
+};

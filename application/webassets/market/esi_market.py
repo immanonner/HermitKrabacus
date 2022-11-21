@@ -247,10 +247,8 @@ def get_structure_market_analysis(struc_name, import_hub, dso, saleChance,
     v = pd.merge(ih_o, h, left_on='type_id', right_on='typeID', how='left')
     v = pd.merge(v, so, on='type_id', how='left')
     v['dso'] = round(v.stock_remaining / v.velocity, 2)
-    v['be'] = round(
-        v.hub_min_price + (v.hub_min_price * .085) + (350 * v.pack_vol), 2)
-    v['ppi'] = round(v.lastPriceAvg - v.be, 2)
-    v['rr'] = round(v.ppi / v.be, 2)
+    v['ppi'] = round(v.lastPriceAvg - v.hub_min_price, 2)
+    v['rr'] = round(v.ppi / v.hub_min_price, 2)
     v['ppd'] = round(v.ppi * v.velocity, 2)
     v.fillna(value={
         'aggVol': 0.0,
@@ -260,7 +258,6 @@ def get_structure_market_analysis(struc_name, import_hub, dso, saleChance,
         "saleChance": 0.0,
         'stock_remaining': 0.0,
         'dso': 0.0,
-        'be': 0.0,
         'ppi': 0.0,
         'rr': 0.0,
         'ppd': 0.0

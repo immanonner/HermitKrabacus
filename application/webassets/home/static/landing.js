@@ -40,15 +40,15 @@ class Matrix_App {
         this.passMe = current_app.randint(0, current_drop.yColUbound);
         this.status = ["print", "pause", "spin"][current_app.randint(0, 2)];
         this.cycleCount = 0;
-      }
+      };
 
     };
-  }
+  };
 
   // helper functions
   randint(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
+  };
 
   randStr(length) {
     const lChars = "abcdefghijklmnopqrstuvwxyz";
@@ -58,9 +58,9 @@ class Matrix_App {
 
     for (let i = 0; i < length; i++) {
       textStr += asciiStr[this.randint(0, asciiStr.length - 1)];
-    }
+    };
     return textStr;
-  }
+  };
 
   getFontMetrics(fontString) {
     this.ctx.font = fontString;
@@ -70,7 +70,7 @@ class Matrix_App {
       fwidth: metrics.width,
       fheight: fontHeight
     };
-  }
+  };
 
   // dynamic website functions
   updateCanvasDimensions(canvas, W, H) {
@@ -88,10 +88,10 @@ class Matrix_App {
         drop.textString = currentPrintedString + this.randStr(drop.yColUbound - currentPrintedString.length - 1);
       } else {
         drop.status = "shrink";
-      }
-    }
+      };
+    };
     // continue running the app after the height / width are resized if it was already running
-  }
+  };
 
   // spawn droplets within the confines of the canvas
   getDrops() {
@@ -100,10 +100,10 @@ class Matrix_App {
 
       while (this.Raindrops.has(dewDrop.xPx)) {
         dewDrop = new this.Raindrop("Courier", 25);
-      }
+      };
       this.Raindrops.set(dewDrop.xPx, dewDrop);
-    }
-  }
+    };
+  };
 
   showAllRaindrops() {
     this.ctx.fillStyle = "green";
@@ -113,9 +113,9 @@ class Matrix_App {
       for (let letter in drop.textString) {
         this.ctx.fillText(drop.textString[letter], drop.xPx, drop.yPx + count * drop.metrics.fheight);
         count += 1;
-      }
-    }
-  }
+      };
+    };
+  };
 
   // droplet printer logic
   // limit printed textString to maximum of 6? chars.
@@ -133,7 +133,7 @@ class Matrix_App {
             drop.passMe -= 1;
           } else {
             drop.status = "print";
-          }
+          };
           break;
 
         case "print":
@@ -141,7 +141,7 @@ class Matrix_App {
           while (currCycle < drop.cycleCount + 1) {
             this.ctx.fillText(drop.textString[currCycle], drop.xPx, drop.yPx + currCycle * drop.metrics.fheight);
             currCycle += 1;
-          }
+          };
 
           if (drop.cycleCount < drop.textString.length - 1) {
             drop.cycleCount += 1;
@@ -149,7 +149,7 @@ class Matrix_App {
             drop.passMe = this.randint(5, 15);
           } else {
             drop.status = "shrink";
-          }
+          };
           break;
 
         case "spin":
@@ -157,7 +157,7 @@ class Matrix_App {
           while (currCycle < drop.cycleCount + 1) {
             this.ctx.fillText(drop.textString[currCycle], drop.xPx, drop.yPx + currCycle * drop.metrics.fheight);
             currCycle += 1;
-          }
+          };
 
           if (drop.passMe > 0) {
             this.ctx.fillStyle = "rgb(204, 255,204)";
@@ -168,7 +168,7 @@ class Matrix_App {
             drop.status = "print";
           } else {
             drop.status = "shrink";
-          }
+          };
           break;
 
         case "shrink":
@@ -176,11 +176,11 @@ class Matrix_App {
           while (currCycle < drop.textString.length) {
             this.ctx.fillText(drop.textString[currCycle], drop.xPx, drop.yPx + currCycle * drop.metrics.fheight);
             currCycle += 1;
-          }
+          };
 
           if (drop.textString.length < 2) {
             drop.status = "delete";
-          }
+          };
           drop.textString = drop.textString.substring(1);
           drop.yPx += drop.metrics.fheight;
           break;
@@ -194,17 +194,17 @@ class Matrix_App {
         default:
           // not currently used
           break;
-      }
-    }
-  }
+      };
+    };
+  };
 
   kill(frameid) {
     this.Raindrops.clear();
     this.ctx.fillStyle = '#232323';
     this.ctx.fillRect(0, 0, this.maxX_pxl, this.maxY_pxl);
     cancelAnimationFrame(frameid);
-  }
-}
+  };
+};
 const matrix_canvas = document.getElementById('mtx');
 const app = new Matrix_App(matrix_canvas, window.innerWidth, window.innerHeight);
 
@@ -216,8 +216,8 @@ function run() {
   app.ctx.fillRect(0, 0, app.maxX_pxl, app.maxY_pxl);
   app.makeItRainText();
   frameid = requestAnimationFrame(run);
-}
-run()
+};
+run();
 
 window.onresize = function () {
   app.updateCanvasDimensions(matrix_canvas, window.innerWidth, window.innerHeight);

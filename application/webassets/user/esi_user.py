@@ -237,6 +237,11 @@ def account_analysis(account_data, hist_range):
     # ================current orders=================
     orders_df = pd.DataFrame.from_records(
         account_data.get("Baron Dashforth").get('orders'))
+    orders_df = pd.concat([
+        orders_df,
+        pd.DataFrame.from_records(
+            account_data.get("Chelsea's Grin").get('orders'))
+    ])
     orders_df.drop(columns=['duration', 'is_corporation', 'range', 'issued'],
                    inplace=True)
     orders_df[
