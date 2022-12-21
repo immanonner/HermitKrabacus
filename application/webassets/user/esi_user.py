@@ -131,7 +131,7 @@ def account_analysis(account_data, hist_range):
     # get the total amount of isk spent on each type; get amount of days between first buy and last sell transaction per type; get sum of volume per type
     ndf = df.groupby(['is_buy', 'type_id'], as_index=False).agg({
         'date': [
-            'count', lambda x:
+            'nunique', lambda x:
             (pd.to_datetime("today") - x.min()
              if x.max() == x.min() else x.max() - x.min()).days
         ],
@@ -154,8 +154,8 @@ def account_analysis(account_data, hist_range):
     ]
 
     intermediate_df.rename(columns={
-        'date_x & count': 'buy_freq',
-        'date_y & count': 'sell_freq',
+        'date_x & nunique': 'buy_freq',
+        'date_y & nunique': 'sell_freq',
         'date_y & <lambda_0>': 'shelf_life',
         'quantity_x & sum': 'buy_quantity',
         'quantity_y & sum': 'sell_quantity',
@@ -179,6 +179,7 @@ def account_analysis(account_data, hist_range):
     }
     intermediate_df.fillna(default_values, inplace=True)
     # dervive stats from the dataframe
+
     intermediate_df[
         'profit_per_item'] = intermediate_df.sell_avg_price - intermediate_df.buy_avg_price
     intermediate_df[
