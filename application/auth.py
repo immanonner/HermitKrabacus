@@ -36,7 +36,7 @@ def load_user(character_id):
                     toon.clear_esi_tokens()
                     db.session.commit()
                     return None
-        return None
+        return toon
     return None
 
 
