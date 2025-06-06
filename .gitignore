@@ -2,7 +2,7 @@
 __pycache__/
 *.webassets-cache
 config.py
-hkvenv/
+venv/
 f_cache/
 .vscode/tasks.json
 .vscode/launch.json
