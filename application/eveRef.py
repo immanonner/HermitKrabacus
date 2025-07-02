@@ -1,12 +1,15 @@
-from .models import db
-from application import f_cache, utils
+import bz2
 import datetime as dt
+import io
+
 import pandas as pd
 import requests as r
-import io
-import bz2
 from dask import dataframe as dd
+
+from application import f_cache, utils
 from config import EVE_NULL_REGIONS
+
+from .models import db
 
 
 def daterange(start_date, end_date):

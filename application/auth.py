@@ -36,7 +36,7 @@ def load_user(character_id):
                     toon.clear_esi_tokens()
                     db.session.commit()
                     return None
-        return None
+        return toon
     return None
 
 
@@ -142,4 +142,4 @@ def callback():
         db.session.rollback()
         logout_user()
 
-    return redirect(url_for('user_bp.dashboard'))
+    return redirect(url_for('home_bp.home'))

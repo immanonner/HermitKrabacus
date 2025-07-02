@@ -5,9 +5,11 @@ if (document.getElementById("wrapper")) {
                 id: 'myCheckbox',
                 name: 'Select',
                 width: '3%',
+                inputType: 'checkbox',
                 plugin: {
                     // install the RowSelection plugin
                     component: gridjs.plugins.selection.RowSelection,
+                    
                     // RowSelection config
                     props: {
                         // use the "typeName" column as the row identifier

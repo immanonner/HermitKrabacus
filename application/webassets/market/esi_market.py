@@ -111,7 +111,10 @@ def get_struc_sell_orders(struc_id):
 
 
 def include_empty_stock(sell_orders):
-    orders = pd.DataFrame(sell_orders).set_index('type_id', drop=True)
+    if type(sell_orders) is list:
+        # if the sell_orders is a list, convert to pd.DataFrame
+        sell_orders = pd.DataFrame(sell_orders).set_index('type_id', drop=True)
+    orders = sell_orders
     #select only sell orders and drop irrelevant columns
     orders = orders[orders.is_buy_order == False].drop(columns=[
         'duration', 'issued', 'min_volume', 'range', 'is_buy_order',
@@ -167,35 +170,40 @@ def get_k_space_orders(hub):
     db.session.merge(sm)
     db.session.commit()
     sm = StructureMarkets.query.filter(StructureMarkets.name == sm.name).first()
-    rsp = esiclient.request(esiapp.op['get_markets_region_id_orders'](
-        region_id=sm.solarSystems.regionID))
-    if rsp.status == 200:
-        pages = rsp.header['X-Pages'][0]
-        expires = rsp.header['expires'][0]
-        results = [{'expires': expires, **rec} for rec in json.loads(rsp.raw)]
-        if pages > 1:
-            operations = []
-            for page in range(2, pages + 1):
-                operations.append(esiapp.op['get_markets_region_id_orders'](
-                    region_id=sm.solarSystems.regionID, page=page))
-        [
-            results.extend([{
-                'expires': rs.header['expires'][0],
-                **rec
-            }
-                            for rec in json.loads(rs.raw)])
-            for rq, rs in esiclient.multi_request(operations,
-                                                  raw_body_only=True)
-            if rs.status == 200
-        ]
-        # clean the data in results
-        return results
+    if sm.solarSystemID != 30000142:  # Jita
+        rsp = esiclient.request(esiapp.op['get_markets_region_id_orders'](
+            region_id=sm.solarSystems.regionID))
+        if rsp.status == 200:
+            pages = rsp.header['X-Pages'][0]
+            expires = rsp.header['expires'][0]
+            results = [{'expires': expires, **rec} for rec in json.loads(rsp.raw)]
+            if pages > 1:
+                operations = []
+                for page in range(2, pages + 1):
+                    operations.append(esiapp.op['get_markets_region_id_orders'](
+                        region_id=sm.solarSystems.regionID, page=page))
+            [
+                results.extend([{
+                    'expires': rs.header['expires'][0],
+                    **rec
+                }
+                                for rec in json.loads(rs.raw)])
+                for rq, rs in esiclient.multi_request(operations,
+                                                      raw_body_only=True)
+                if rs.status == 200
+            ]
+            # clean the data in results
+            return results
+        else:
+            flash(
+                f"response status = <{rsp.status}> station sell order retrival failed",
+                "danger")
+        # todo error handle this
+        pass
     else:
-        flash(
-            f"response status = <{rsp.status}> station sell order retrival failed",
-            "danger")
-    # todo error handle this
-    pass
+         # pull the sell orders from the parquet file and store them in the sql db
+        sell_orders = pd.read_parquet('jita_sell_orders/jita_sell_orders.parquet')
+        return sell_orders
 
 
 @apptils.timer_func

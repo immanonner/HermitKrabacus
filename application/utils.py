@@ -5,6 +5,7 @@ def timer_func(func):
     # This function shows the execution time of
     # the function object passed
     def wrap_func(*args, **kwargs):
+        print(f'Executing function {func.__name__!r}...')
         t1 = time()
         result = func(*args, **kwargs)
         t2 = time()

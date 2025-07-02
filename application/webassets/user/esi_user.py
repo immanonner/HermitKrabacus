@@ -1,15 +1,16 @@
 # get each linked eve online user information such as wallet, characters, etc.
-from concurrent.futures import ThreadPoolExecutor
 import json
+from concurrent.futures import ThreadPoolExecutor
 
-from application import esiapp, esiclient
-from application.models import Users, db
-from config import *
+import pandas as pd
 from esipy import EsiClient, EsiSecurity
 from esipy.exceptions import APIException
 from flask import flash
 from flask_login import current_user
-import pandas as pd
+
+from application import esiapp, esiclient
+from application.models import Users, db
+from config import *
 
 pd.set_option('display.float_format', lambda x: '%.2f' % x)
 
@@ -56,8 +57,9 @@ def threaded_user_mutli_request(toon):
         character_id=toon.character_id)
     orders_op = esiapp.op['get_characters_character_id_orders'](
         character_id=toon.character_id, token=client.security.access_token)
-    transacts_op = esiapp.op['get_characters_character_id_wallet_transactions'](
-        character_id=toon.character_id, token=client.security.access_token)
+    transacts_op = esiapp.op[
+        'get_characters_character_id_wallet_transactions'](
+            character_id=toon.character_id, token=client.security.access_token)
     request_bundle = [wallet_op, orders_op, transacts_op]
     return client.multi_request(request_bundle)
 
@@ -131,12 +133,14 @@ def account_analysis(account_data, hist_range):
     # get the total amount of isk spent on each type; get amount of days between first buy and last sell transaction per type; get sum of volume per type
     ndf = df.groupby(['is_buy', 'type_id'], as_index=False).agg({
         'date': [
-            'count', lambda x:
+            'nunique', lambda x:
             (pd.to_datetime("today") - x.min()
              if x.max() == x.min() else x.max() - x.min()).days
         ],
-        'quantity': 'sum',
-        'total_transact': 'sum'
+        'quantity':
+        'sum',
+        'total_transact':
+        'sum'
     })
     ndf['avg_price'] = ndf.total_transact / ndf.quantity
 
@@ -154,8 +158,8 @@ def account_analysis(account_data, hist_range):
     ]
 
     intermediate_df.rename(columns={
-        'date_x & count': 'buy_freq',
-        'date_y & count': 'sell_freq',
+        'date_x & nunique': 'buy_freq',
+        'date_y & nunique': 'sell_freq',
         'date_y & <lambda_0>': 'shelf_life',
         'quantity_x & sum': 'buy_quantity',
         'quantity_y & sum': 'sell_quantity',
@@ -196,8 +200,8 @@ def account_analysis(account_data, hist_range):
         types_df,
         how='inner',
         left_on='type_id',
-        right_on='typeID').drop(columns=['typeID']).sort_values('realized_ppd',
-                                                                ascending=False)
+        right_on='typeID').drop(columns=['typeID']).sort_values(
+            'realized_ppd', ascending=False)
 
     # Reordered column typeName
     intermediate_df_columns = [
@@ -267,9 +271,12 @@ def account_analysis(account_data, hist_range):
 
     #group orders on type ids to display relevant data
     orders_df = orders_df.groupby(['type_id'], as_index=False).agg({
-        'typeName': 'first',
-        'volume_remain': 'sum',
-        'remaining_order_value': 'sum'
+        'typeName':
+        'first',
+        'volume_remain':
+        'sum',
+        'remaining_order_value':
+        'sum'
     })
     orders_df[
         'sell_avg_price'] = orders_df.remaining_order_value / orders_df.volume_remain
@@ -375,7 +382,8 @@ def account_analysis(account_data, hist_range):
     account_data.get(
         "Baron Dashforth")['wallet_transactions'] = intermediate_df.to_json(
             orient='records')
-    account_data.get("Baron Dashforth")['order_stats'] = order_stats_df.to_json(
-        orient='records')
+    account_data.get(
+        "Baron Dashforth")['order_stats'] = order_stats_df.to_json(
+            orient='records')
     account_data.get("Baron Dashforth")['stats'] = json.dumps(statistics)
     return account_data
