@@ -168,11 +168,11 @@ class StructureMarkets(db.Model):
         now = (datetime.utcnow() - epoch).total_seconds()
         return int(expires_in) - int(now) <= 0
 
-    def update_history_records(self, records: list[dict]):
+    def update_history_records(self, records):
         self.history = records
         self.history_expiry = datetime.today() + timedelta(days=1)
 
-    def update_sell_orders(self, orders: list[dict]):
+    def update_sell_orders(self, orders):
         self.sell_orders = orders
         self.sell_orders_expiry = self.__pull_earliest_exp_date(orders)
 
